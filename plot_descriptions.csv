@@ -1,0 +1,15 @@
+Plot Name,Description
+Occupation,This plot shows the relationship between an individual's occupation and their average credit score. It suggests that occupation plays a minor role in credit score formation.
+Credit_Mix,A diverse credit mix (labeled good) will yield best results. Individuals with diverse credit types can have better credit scores.
+Payment_Behaviour,"If you're looking to improve your credit score, infrequent small or medium value payments seem to have the least positive impact, as indicated by the lower average credit scores in these categories."
+Num_Bank_Accounts,This graph illustrates the correlation between the number of bank accounts and average credit score.
+Num_Credit_Card,"This chart suggests that having a moderate number of credit cards might be associated with a higher credit score, but having too many could be less beneficial."
+Interest_Rate,"The graph indicates that generally, individuals with lower interest rates tend to have higher average credit scores, which implies that improving your credit score might help you qualify for loans with more favorable terms."
+Monthly_Inhand_Salary,"We see a positive trend indicating that higher monthly income is generally associated with a higher credit score, suggesting that improving your income might help improve your creditworthiness."
+Outstanding_Debt,"We see a negative trend, indicating that higher outstanding debt is generally associated with a lower credit score, suggesting that reducing debt could be beneficial for your credit rating."
+Credit_History_Age,A longer credit history is positively associated with a higher credit score.
+Total_EMI_per_month,"Lower EMIs seem to correlate with higher credit scores, potentially indicating good debt management."
+Amount_Invested_Monthly,Regular investment activity may reflect financial stability and is shown to correlate with higher credit scores.
+Monthly_Balance,"Maintaining a higher monthly balance in your accounts might be indicative of sound financial health, correlating with a higher credit score."
+Credit_Utilization_Ratio,A moderate credit utilization ratio seems to have a neutral effect on the average credit score.
+Annual_Income,
