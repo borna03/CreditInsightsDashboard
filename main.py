@@ -4,7 +4,32 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
 import random
+import credit_score_related_with
 import plotly.graph_objects as go
+
+#### Loading and preping data for plotting
+# Load the CSV file into a DataFrame
+plot_discrete_data = pd.read_csv("full_processed_data_sorted.csv")
+
+# Prepare the DataFrame for plotting continous data
+# Create a copy of the DataFrame for plotting
+plot_continuous_data = plot_discrete_data.copy()
+
+# Convert necessary columns to numeric
+columns_to_convert = ['Monthly_Inhand_Salary', 'Outstanding_Debt', 'Credit_History_Age',
+                      'Total_EMI_per_month', 'Amount_invested_monthly',
+                      'Monthly_Balance', 'Credit_Utilization_Ratio', 'Annual_Income']
+
+for col in columns_to_convert:
+    plot_continuous_data[col] = pd.to_numeric(plot_continuous_data[col], errors='coerce')
+
+# Map Credit_Score to numeric values
+credit_score_mapping = {'Poor': 1, 'Standard': 2, 'Good': 3}
+plot_continuous_data['Credit_Score_Numeric'] = plot_continuous_data['Credit_Score'].map(credit_score_mapping)
+
+# Drop NaN values (or handle them as per your analysis requirement)
+plot_continuous_data = plot_continuous_data.dropna(subset=columns_to_convert + ['Credit_Score_Numeric'])
+####
 
 categories = ['Occupation', 'Salary', 'Outstanding Dept', 'Nmr. Bank Accounts']
 num_additional_values = 10
@@ -46,16 +71,18 @@ app.layout = html.Div([
     ]),
 
     html.Div([
-        html.P("Salary influences credit scores by impacting an individual's ability to manage and repay debts. A higher salary often correlates with increased financial stability, "
-               "making it easier for individuals to meet their financial obligations, which positively affects their credit score. A strong credit score is crucial as it determines one's "
-               "creditworthiness, impacting the ability to secure loans, favorable interest rates, and access to financial opportunities.", style={'text-align': 'center', 'color': '#555'}),
+        html.P(
+            "Salary influences credit scores by impacting an individual's ability to manage and repay debts. A higher salary often correlates with increased financial stability, "
+            "making it easier for individuals to meet their financial obligations, which positively affects their credit score. A strong credit score is crucial as it determines one's "
+            "creditworthiness, impacting the ability to secure loans, favorable interest rates, and access to financial opportunities.",
+            style={'text-align': 'center', 'color': '#555'}),
     ], style={'width': '45%', 'margin-left': '50%', 'text-align': 'center'}),  # Center and set width to 50%
 
     html.Div([
         html.Div([
             html.Div([
                 html.P(
-                    "Salary", style={'margin': '0','text-align': 'left'}),
+                    "Salary", style={'margin': '0', 'text-align': 'left'}),
                 dcc.Slider(
                     id='slider-1',
                     min=0,
@@ -75,7 +102,7 @@ app.layout = html.Div([
                     value=5,
                 ),
                 html.P(
-                    "Nmr. Bank Accounts", style={'margin': '0','text-align': 'right'}),
+                    "Nmr. Bank Accounts", style={'margin': '0', 'text-align': 'right'}),
                 dcc.Slider(
                     id='slider-3',
                     min=0,
@@ -93,20 +120,45 @@ app.layout = html.Div([
 
         html.Div([
             html.P(
-                "To boost your credit score, it's essential to make tackling outstanding debts a top priority, working on reducing them gradually. Improve your financial habits by responsibly "
-                "managing non-mortgage bank accounts, ensuring a steady and positive account history, which can positively impact your creditworthiness. Consider exploring opportunities for career "
-                "growth or additional income streams, recognizing your current salary rating, to address financial concerns and strive for an overall improvement in your financial situation.",
+                "To boost your credit score, it's essential to understand the factors that influence it. ",
                 style={'text-align': 'center', 'color': '#555'}),
+            html.P(
+                "In the dropdown menu below, you can pick certain factors that influence credit score, and receive insight on how are they related to it.",
+                "Each of the variables are going to be related to average credit score, which ranges from 1 to 3",
+                style={'text-align': 'center', 'color': '#555'}),
+            dcc.Markdown('### Average Credit Score by:'),
             dcc.Dropdown(
                 id='my-dropdown',
                 options=[
-                    {'label': 'Salary', 'value': 'scatter'},
-                    {'label': 'Outstanding Dept', 'value': 'line'},
-                    {'label': 'Nmr. Bank Accounts', 'value': 'funnel'}
+                    {'label': 'Occupation', 'value': 'Occupation'},
+                    {'label': 'Credit Mix', 'value': 'Credit_Mix'},
+                    {'label': 'Payment Behaviour', 'value': 'Payment_Behaviour'},
+                    {'label': 'Number of Bank Accounts', 'value': 'Num_Bank_Accounts'},
+                    {'label': 'Number of Credit Cards', 'value': 'Num_Credit_Card'},
+                    {'label': 'Interest Rate', 'value': 'Interest_Rate'},
+                    {'label': 'Monthly Inhand Salary', 'value': 'Monthly_Inhand_Salary'},
+                    {'label': 'Outstanding Debt', 'value': 'Outstanding_Debt'},
+                    {'label': 'Credit History Age', 'value': 'Credit_History_Age'},
+                    {'label': 'Total EMI per Month', 'value': 'Total_EMI_per_month'},
+                    {'label': 'Amount Invested Monthly', 'value': 'Amount_Invested_Monthly'},
+                    {'label': 'Monthly Balance', 'value': 'Monthly_Balance'},
+                    {'label': 'Credit Utilization Ratio', 'value': 'Credit_Utilization_Ratio'},
+                    {'label': 'Annual Income', 'value': 'Annual_Income'},
                 ],
                 value=None,  # default selected option
                 style={}),
-            html.Div(id='selected-option-output'),  # Output to display selected option
+            html.Div(id='selected-option-output',
+                     style={
+                         'border': '1px solid #e1e1e1',
+                         'border-radius': '8px',
+                         'background-color': '#f9f9f9',
+                         'padding': '20px',
+                         'margin-top': '10px',
+                         'box-shadow': '0 4px 8px rgba(0,0,0,0.1)',
+                         'transition': 'transform 0.3s ease-in-out',
+                         'transform': 'translateY(-3px)',
+                         'cursor': 'default'
+                     }),  # Output to display selected option
             dcc.Graph(
                 id='dynamic-graph',  # Use a new ID for the dynamic graph
                 style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}
@@ -116,26 +168,53 @@ app.layout = html.Div([
 
 ])
 
+# For each plot that gets displayed by the dropdown, we add a description, helping the user interpret the specific plot.
+plot_descriptions_df = pd.read_csv('plot_descriptions.csv')
+plot_descriptions_dict = plot_descriptions_df.set_index('Plot Name')['Description'].to_dict()
+
 
 @app.callback(
     [Output('dynamic-graph', 'figure'),
-     Output('dynamic-graph', 'style')],
+     Output('dynamic-graph', 'style'),
+     Output('selected-option-output', 'children')],
     [Input('my-dropdown', 'value')]
 )
 def update_dynamic_graph(selected_option):
     if selected_option is None:
-        return dash.no_update, {'display': 'none'}
-    elif selected_option == 'scatter':
-        return px.scatter(df, x='X', y='Y', title='Salary scatter plot'), {'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}
-    elif selected_option == 'line':
-        return px.line(df, x='X', y='Y', title='Line Plot'), {'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}
-    elif selected_option == 'funnel':
-        return px.funnel(df, x='Value', y='Category', title='Funnel Graph'), {'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}
+        return dash.no_update, {'display': 'none'}, ""  # No selection, so no update
     else:
-        # Default to scatter plot and display the graph
-        return px.scatter(df, x='X', y='Y', title='Scatter Plot'), {'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}
+        title_selected_option = selected_option.replace('_', ' ')
+        if selected_option in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Num_Bank_Accounts', 'Num_Credit_Card', 'Interest_Rate']:
+            fig = credit_score_related_with.plot_credit_score_plotly(plot_discrete_data, selected_option, 'lightblue', f'Average Credit Score by {title_selected_option}')
+        else:
+            fig = credit_score_related_with.plot_relationship_plotly(plot_continuous_data, selected_option, 'Credit_Score_Numeric', f'Average Credit Score by {title_selected_option}')
 
+        # Get the description for the selected option from the loaded dictionary
+        description = plot_descriptions_dict.get(selected_option, "No description available.")
+        description_html = html.Div([
+            html.Div('🔍 Interpretation:', style={
+                'font-size': '18px',
+                'font-weight': 'bold',
+                'color': '#333',
+                'margin-bottom': '10px'
+            }),
+            html.Div(description, style={
+                'font-size': '16px',
+                'color': '#555'
+            })
+        ], style={
+            'border': '1px solid #e1e1e1',
+            'border-radius': '8px',
+            'background-color': '#f9f9f9',
+            'padding': '20px',
+            'margin-top': '10px',
+            'box-shadow': '0 4px 8px rgba(0,0,0,0.1)',
+            'transition': 'transform 0.3s ease-in-out',
+            'transform': 'translateY(-3px)',
+            'cursor': 'default'
+        })
 
+        return fig, {'display': 'block'}, description_html
 @app.callback(
     Output('slider-bar-chart', 'figure'),
     [Input('slider-1', 'value'),
