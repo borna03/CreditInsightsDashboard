@@ -120,11 +120,10 @@ app.layout = html.Div([
 
         html.Div([
             html.P(
-                "To boost your credit score, it's essential to understand the factors that influence it. ",
+                "To better undestand how credit score formation works, it's essential to understand how individual factors play a role in its formation.",
                 style={'text-align': 'center', 'color': '#555'}),
             html.P(
-                "In the dropdown menu below, you can pick certain factors that influence credit score, and receive insight on how are they related to it.",
-                "Each of the variables are going to be related to average credit score, which ranges from 1 to 3",
+                "In the dropdown menu below, you can pick certain factors that influence credit score, and receive insight on how are they related to it. Each of the variables are going to be related to average credit score, which ranges from 1 to 3: 1 - bad, 2 - standart, 3 - good.",
                 style={'text-align': 'center', 'color': '#555'}),
             dcc.Markdown('### Average Credit Score by:'),
             dcc.Dropdown(
@@ -140,7 +139,7 @@ app.layout = html.Div([
                     {'label': 'Outstanding Debt', 'value': 'Outstanding_Debt'},
                     {'label': 'Credit History Age', 'value': 'Credit_History_Age'},
                     {'label': 'Total EMI per Month', 'value': 'Total_EMI_per_month'},
-                    {'label': 'Amount Invested Monthly', 'value': 'Amount_Invested_Monthly'},
+                    {'label': 'Amount Invested Monthly', 'value': 'Amount_invested_monthly'},
                     {'label': 'Monthly Balance', 'value': 'Monthly_Balance'},
                     {'label': 'Credit Utilization Ratio', 'value': 'Credit_Utilization_Ratio'},
                     {'label': 'Annual Income', 'value': 'Annual_Income'},
@@ -184,10 +183,16 @@ def update_dynamic_graph(selected_option):
         return dash.no_update, {'display': 'none'}, ""  # No selection, so no update
     else:
         title_selected_option = selected_option.replace('_', ' ')
-        if selected_option in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Num_Bank_Accounts', 'Num_Credit_Card', 'Interest_Rate']:
-            fig = credit_score_related_with.plot_credit_score_plotly(plot_discrete_data, selected_option, 'lightblue', f'Average Credit Score by {title_selected_option}')
+        if selected_option in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Interest_Rate']:
+            fig = credit_score_related_with.plot_bar_chart(plot_discrete_data, selected_option, 'lightblue',
+                                                           f'Average Credit Score by {title_selected_option}')
+        elif selected_option in ['Num_Credit_Card', 'Num_Bank_Accounts']:
+            fig = credit_score_related_with.plot_line_chart(plot_discrete_data, selected_option, 'lightblue',
+                                                            f'Average Credit Score by {title_selected_option}')
         else:
-            fig = credit_score_related_with.plot_relationship_plotly(plot_continuous_data, selected_option, 'Credit_Score_Numeric', f'Average Credit Score by {title_selected_option}')
+            fig = credit_score_related_with.plot_regression_line(plot_continuous_data, selected_option,
+                                                                 'Credit_Score_Numeric',
+                                                                 f'Average Credit Score by {title_selected_option}')
 
         # Get the description for the selected option from the loaded dictionary
         description = plot_descriptions_dict.get(selected_option, "No description available.")
@@ -215,6 +220,8 @@ def update_dynamic_graph(selected_option):
         })
 
         return fig, {'display': 'block'}, description_html
+
+
 @app.callback(
     Output('slider-bar-chart', 'figure'),
     [Input('slider-1', 'value'),
