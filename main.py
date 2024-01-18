@@ -124,6 +124,7 @@ app.layout = html.Div([
                 style={'text-align': 'center', 'color': '#555'}),
             html.P(
                 "In the dropdown menu below, you can pick certain factors that influence credit score, and receive insight on how are they related to it. Each of the variables are going to be related to average credit score, which ranges from 1 to 3: 1 - bad, 2 - standart, 3 - good.",
+                "",
                 style={'text-align': 'center', 'color': '#555'}),
             dcc.Markdown('### Average Credit Score by:'),
             dcc.Dropdown(
@@ -176,21 +177,21 @@ plot_descriptions_dict = plot_descriptions_df.set_index('Plot Name')['Descriptio
     [Output('dynamic-graph', 'figure'),
      Output('dynamic-graph', 'style'),
      Output('selected-option-output', 'children')],
-    [Input('my-dropdown', 'value')]
+    [Input('my-dropdown', 'value')],
 )
 def update_dynamic_graph(selected_option):
     if selected_option is None:
         return dash.no_update, {'display': 'none'}, ""  # No selection, so no update
     else:
         title_selected_option = selected_option.replace('_', ' ')
-        if selected_option in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Interest_Rate']:
+        if selected_option in ['Occupation', 'Credit_Mix', 'Payment_Behaviour']:
             fig = credit_score_related_with.plot_bar_chart(plot_discrete_data, selected_option, 'lightblue',
                                                            f'Average Credit Score by {title_selected_option}')
-        elif selected_option in ['Num_Credit_Card', 'Num_Bank_Accounts']:
+        elif selected_option in ['Num_Credit_Card', 'Num_Bank_Accounts', 'Interest_Rate']:
             fig = credit_score_related_with.plot_line_chart(plot_discrete_data, selected_option, 'lightblue',
                                                             f'Average Credit Score by {title_selected_option}')
         else:
-            fig = credit_score_related_with.plot_regression_line(plot_continuous_data, selected_option,
+            fig = credit_score_related_with.plot_regression_line(plot_continuous_data, selected_option, 'lightblue',
                                                                  'Credit_Score_Numeric',
                                                                  f'Average Credit Score by {title_selected_option}')
 

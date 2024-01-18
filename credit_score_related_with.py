@@ -34,7 +34,7 @@ def plot_bar_chart(data, category, bar_color,
 
     # Add horizontal line if needed
     if horizontal_line:
-        fig.add_hline(y=2, line_color='blue')
+        fig.add_hline(y=2, line_dash="dash", line_color='rgba(0, 0, 255, 0.3)')
 
     # Set y-axis range
     fig.update_yaxes(range=[1, 3])
@@ -49,7 +49,7 @@ def plot_bar_chart(data, category, bar_color,
     return fig
 
 
-def plot_regression_line(data, x_column, y_column, title):
+def plot_regression_line(data, x_column, y_column, line_color, title):
     """
     Plots a line chart of the average credit score against a discrete variable.
     The line in this chart represents the relationship between credit score and the chosen variable.
@@ -69,14 +69,19 @@ def plot_regression_line(data, x_column, y_column, title):
                      labels={x_column: x_column.replace('_', ' '), y_column: 'Average Credit Score'},
                      title=title, range_y=[1, 3])
 
+
     # Hide scatter points, only show trendline
     fig.update_traces(marker=dict(opacity=0), selector=dict(mode='markers'))
+
+    fig.add_hline(y=2, line_dash="dash", line_color='rgba(0, 0, 255, 0.5)')
 
     # Update the layout for the legend
     fig.update_layout(showlegend=True)
 
     # Customize the hovertemplate to not show the first 3 rows (i.e., OLS trendline info)
     fig.update_traces(hovertemplate='Average Credit Score: %{y}, ' + x_column.replace('_', ' ') + ': %{x}')
+
+    fig.data[1].line.color = line_color
 
     # Update axis titles
     fig.update_xaxes(title=x_column.replace('_', ' '))
