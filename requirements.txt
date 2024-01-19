@@ -1,5 +1,7 @@
-dash
+dash~=2.14.2
 dash-core-components
 dash-html-components
-plotly
-pandas
+plotly~=5.18.0
+pandas~=2.0.2
+
+scikit-learn~=1.2.2
