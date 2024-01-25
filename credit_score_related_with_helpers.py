@@ -8,7 +8,8 @@ plot_discrete_data = pd.read_csv("full_processed_data_sorted.csv")
 
 # Bar Charts function
 def plot_bar_chart(data, category, bar_color,
-                   title, y_label='Average Credit Score',):
+                   title, y_label='Average Credit Score',
+                   horizontal_line=True):
     """
     Plots a bar chart of the average credit score against a discrete variable.
     """
@@ -31,8 +32,9 @@ def plot_bar_chart(data, category, bar_color,
                  title=title, labels={category: category, 'Credit_Score_Num': y_label},
                  color_discrete_sequence=[bar_color] * len(average_credit_score))
 
-
-    fig.add_hline(y=2, line_dash="dash", line_color='rgba(128, 128, 128, 0.5)')
+    # Add horizontal line if needed
+    if horizontal_line:
+        fig.add_hline(y=2, line_dash="dash", line_color='rgba(0, 0, 255, 0.3)')
 
     # Set y-axis range
     fig.update_yaxes(range=[1, 3])
@@ -70,7 +72,7 @@ def plot_regression_line(data, x_column, line_color, y_column, title):
     # Hide scatter points, only show trendline
     fig.update_traces(marker=dict(opacity=0), selector=dict(mode='markers'))
 
-    fig.add_hline(y=2, line_dash="dash", line_color='rgba(128, 128, 128, 0.5)')
+    fig.add_hline(y=2, line_dash="dash", line_color='rgba(0, 0, 255, 0.5)')
 
     # Update the layout for the legend
     fig.update_layout(showlegend=True)
@@ -118,7 +120,7 @@ def plot_line_chart(data, category, line_color, title, y_label='Average Credit S
                   markers=True, color_discrete_sequence=[line_color])
 
     # Add horizontal line
-    fig.add_hline(y=2, line_dash="dash", line_color='rgba(128, 128, 128, 0.5)')
+    fig.add_hline(y=2, line_dash="dash", line_color='rgba(0, 0, 255, 0.5)')
 
     # Set y-axis range
     fig.update_yaxes(range=[1, 3])
@@ -177,7 +179,7 @@ def plot_bar_type_of_loan(dataframe, bar_color, chart_title, y_label='Average Cr
     fig = px.bar(loan_avg_scores_df, x='Loan_Type', y='Average_Credit_Score', color_discrete_sequence=[bar_color],
                  title=chart_title, labels={'Average_Credit_Score': y_label})
 
-    fig.add_hline(y=2, line_dash="dash", line_color='rgba(128, 128, 128, 0.5)')
+    fig.add_hline(y=2, line_dash="dash", line_color='rgba(0, 0, 255, 0.5)')
 
     # Set y-axis range and update x-axis tick labels
     fig.update_yaxes(range=[1, 3])
