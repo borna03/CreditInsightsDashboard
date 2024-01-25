@@ -8,7 +8,8 @@ import random
 import logging
 import credit_score_related_with_helpers
 from slider_helpers import preprocess_data, create_slider_config, generate_figure
-from diverging_bar_chart_helpers import plot_correlation_chart, plot_continuous_distribution, plot_discrete_distribution, \
+from diverging_bar_chart_helpers import plot_correlation_chart, plot_continuous_distribution, \
+    plot_discrete_distribution, \
     plot_categorical_distribution, plot_loan_distribution
 
 # Set up basic logging configuration
@@ -70,7 +71,7 @@ df = pd.DataFrame({
     'Y': [random.randint(15, 50) for _ in range(num_additional_values + 1) for _ in categories]
 })
 
-app = dash.Dash(__name__) #external_stylesheets=[dbc.themes.DARKLY]
+app = dash.Dash(__name__)  # external_stylesheets=[dbc.themes.DARKLY]
 
 custom_font = {
     'font-family': 'Helvetica, sans-serif',
@@ -78,7 +79,6 @@ custom_font = {
 }
 
 counter = 0
-
 
 app.layout = html.Div([
     html.H1("Dashboard", style={'text-align': 'center', **custom_font}),
@@ -107,36 +107,6 @@ app.layout = html.Div([
             'cursor': 'default'
         })
     ], style={'display': 'flex', 'justify-content': 'start', 'align-items': 'flex-start'}),
-
-    # Dropdown for Average Credit Score by, placed below the Interpretation card
-    dcc.Dropdown(
-        id='my-dropdown',
-        options=[
-            {'label': 'Credit History Age', 'value': 'Credit_History_Age'},
-            {'label': 'Monthly Inhand Salary', 'value': 'Monthly_Inhand_Salary'},
-            {'label': 'Monthly Balance', 'value': 'Monthly_Balance'},
-            {'label': 'Credit Mix', 'value': 'Credit_Mix'},
-            {'label': 'Amount Invested Monthly', 'value': 'Amount_invested_monthly'},
-            {'label': 'Type of Loan', 'value': 'Type_of_Loan'},
-            {'label': 'Outstanding Debt', 'value': 'Outstanding_Debt'},
-            {'label': 'Credit Utilization Ratio', 'value': 'Credit_Utilization_Ratio'},
-            {'label': 'Annual Income', 'value': 'Annual_Income'},
-            {'label': 'Total EMI per Month', 'value': 'Total_EMI_per_month'},
-            {'label': 'Occupation', 'value': 'Occupation'},
-            {'label': 'Payment Behaviour', 'value': 'Payment_Behaviour'},
-            {'label': 'Changed Credit Limit', 'value': 'Changed_Credit_Limit'},
-            {'label': 'Number of Delayed Payments', 'value': 'Num_of_Delayed_Payment'},
-            {'label': 'Number of Credit Inquiries', 'value': 'Num_Credit_Inquiries'},
-            {'label': 'Payment of Min Amount', 'value': 'Payment_of_Min_Amount'},
-            {'label': 'Number of Credit Cards', 'value': 'Num_Credit_Card'},
-            {'label': 'Number of Loans', 'value': 'Num_of_Loan'},
-            {'label': 'Number of Bank Accounts', 'value': 'Num_Bank_Accounts'},
-            {'label': 'Interest Rate', 'value': 'Interest_Rate'},
-            {'label': 'Delay from due date', 'value': 'Delay_from_due_date'}
-        ],
-        value=None,
-        style={'width': '48%', 'vertical-align': 'top', 'display': 'inline-block', 'margin-top': '10px'}
-    ),
 
     # Second row with Distribution Chart below the Diverging Bar Chart and Dynamic Graph on the right
     html.Div([
@@ -174,10 +144,10 @@ plot_descriptions_dict = plot_descriptions_df.set_index('Plot Name')['Descriptio
     [Output('dynamic-graph', 'figure'),
      Output('dynamic-graph', 'style'),
      Output('selected-option-output', 'children')],
-    [Input('my-dropdown', 'value'),
-     Input('diverging-bar-chart', 'clickData')],  # Added clickData as input
+    [  # Input('my-dropdown', 'value'),
+        Input('diverging-bar-chart', 'clickData')],  # Added clickData as input
 )
-def update_dynamic_graph(selected_option, click_data):
+def update_dynamic_graph(click_data):  # selected_option
     ctx = dash.callback_context
 
     # Check which input was triggered
@@ -187,10 +157,7 @@ def update_dynamic_graph(selected_option, click_data):
     else:
         input_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-        # Prioritize dropdown input over click data
-        if input_id == 'my-dropdown' and selected_option is not None:
-            pass  # Keep the selected_option as is
-        elif input_id == 'diverging-bar-chart' and click_data is not None:
+        if input_id == 'diverging-bar-chart' and click_data is not None:
             # Extract the category from the click data if there's no dropdown selection
             selected_option = click_data['points'][0]['y'].replace(' ', '_')  # Assuming that's the correct field
         else:
@@ -199,18 +166,18 @@ def update_dynamic_graph(selected_option, click_data):
     title_selected_option = selected_option.replace('_', ' ')
     if selected_option in ['Type_of_Loan']:
         fig = credit_score_related_with_helpers.plot_bar_type_of_loan(plot_discrete_data, 'lightblue',
-                                                              f'Average Credit Score by Type of Loan')
+                                                                      f'Average Credit Score by Type of Loan')
     elif selected_option in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Payment_of_Min_Amount']:
         fig = credit_score_related_with_helpers.plot_bar_chart(plot_discrete_data, selected_option, 'lightblue',
-                                                       f'Average Credit Score by {title_selected_option}')
+                                                               f'Average Credit Score by {title_selected_option}')
     elif selected_option in ['Num_Credit_Card', 'Num_Bank_Accounts', 'Interest_Rate', 'Delay_from_due_date',
                              'Num_of_Delayed_Payment', 'Num_Credit_Inquiries']:
         fig = credit_score_related_with_helpers.plot_line_chart(plot_discrete_data, selected_option, 'lightblue',
-                                                        f'Average Credit Score by {title_selected_option}')
+                                                                f'Average Credit Score by {title_selected_option}')
     else:
         fig = credit_score_related_with_helpers.plot_regression_line(plot_continuous_data, selected_option, 'lightblue',
-                                                             'Credit_Score_Numeric',
-                                                             f'Average Credit Score by {title_selected_option}')
+                                                                     'Credit_Score_Numeric',
+                                                                     f'Average Credit Score by {title_selected_option}')
 
     # Get the description for the selected option from the loaded dictionary
     description = plot_descriptions_dict.get(selected_option, "No description available.")
@@ -277,13 +244,14 @@ def update_radar_chart(slider_values, selected_columns):
     [Input('diverging-bar-chart', 'clickData')]
 )
 def update_scatter_plot(click_data):
+
     if click_data is None:
         return px.scatter(title='Scatter Plot')
     else:
         clicked_category = click_data['points'][0]['y']
         logging.info(f"Clicked Category: {clicked_category}")
         if clicked_category in ['Type_of_Loan']:
-            fig = plot_loan_distribution(plot_discrete_data, 'lightblue')
+            fig = plot_loan_distribution(plot_discrete_data)
         elif clicked_category in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Payment_of_Min_Amount']:
             fig = plot_categorical_distribution(plot_discrete_data, clicked_category)
         elif clicked_category in ['Num_Credit_Card', 'Num_Bank_Accounts', 'Interest_Rate', 'Num_of_Loan']:
