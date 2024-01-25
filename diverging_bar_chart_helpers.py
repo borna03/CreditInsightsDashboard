@@ -27,7 +27,7 @@ def plot_correlation_chart(df):
         y=correlation_without_target.index,  # Use original column names here
         orientation='h',
         color=correlation_without_target.apply(lambda x: 'Positive' if x > 0 else 'Negative'),
-        color_discrete_map={'Positive': 'lightblue', 'Negative': 'lightsalmon'}
+        color_discrete_map={'Positive': 'lightblue', 'Negative': 'palevioletred'}
     )
 
     fig.update_layout(
@@ -50,149 +50,226 @@ def plot_correlation_chart(df):
 # Categorical variables
 def plot_categorical_distribution(dataframe, column_name):
     """
-    Function to create a Plotly figure representing the distribution of a specified
-    categorical variable from a CSV data file.
+    Function to create a Plotly figure representing the density distribution of a specified
+    categorical variable from a CSV data file, differentiated by credit score.
 
     :param dataframe: dataframe to use
     :param column_name: The name of the categorical column to plot.
-    :return: A Plotly figure representing the distribution of the specified variable.
+    :return: A Plotly figure representing the density distribution of the specified variable.
     """
+    # Define the color mapping
+    color_map = {'Poor': 'palevioletred', 'Standard': 'grey', 'Good': 'lightblue'}
+
     column_name_stripped = column_name.replace('_', ' ')
-    if column_name == 'Payment_Behaviour':
-        dataframe = dataframe[dataframe[column_name] != "!@9#%8"]
 
     if column_name in dataframe.columns and dataframe[column_name].dtype == 'object':
-        # Counting the occurrences of each unique value in the column
-        count_data = dataframe[column_name].value_counts().sort_index()
+        # Create a grouped dataframe by `column_name` and `Credit_Score`
+        grouped_data = dataframe.groupby([column_name, 'Credit_Score']).size().unstack(fill_value=0)
 
-        fig = go.Figure(go.Bar(
-            x=count_data.index,
-            y=count_data.values,
-            marker=dict(color='lightblue')  # Set bar color as 'lightblue'
-        ))
+        # Calculate density instead of count for each credit score
+        densities = grouped_data.div(grouped_data.sum(axis=0), axis=1)
+
+        # Create a bar for each credit score category
+        bars = []
+        for credit_score in color_map.keys():
+            bars.append(go.Bar(
+                name=credit_score,
+                x=densities.index,
+                y=densities[credit_score],
+                marker=dict(color=color_map[credit_score]),  # Use the color map for bar colors
+            ))
+
+        # Customizing hover text to show the specific category and density in percentage
+        for bar in bars:
+            bar.hovertemplate = f'<b>{column_name_stripped}:</b> %{{x}}<br><b>Density:</b> %{{y:.2%}}'
+
+        # Use `go.Figure` to create the stacked bar chart
+        fig = go.Figure(data=bars)
         fig.update_layout(
-            title=f'Distribution of {column_name_stripped}',
-            xaxis_title=column_name,
-            yaxis_title='Count',
-            xaxis_type='category'
+            barmode='stack',
+            title=f'Density Distribution of {column_name_stripped} by Credit Score',
+            xaxis_title=column_name_stripped,
+            yaxis_title='Density',
+            legend_title='<b>Credit Score</b>',
+            yaxis=dict(tickformat=',.0%')  # Format y-axis as a percentage
         )
 
-        # Customizing hover text
-        hover_text = f'<b>{column_name_stripped}:</b> %{{x}}<br><b>Number of Individuals:</b> %{{y}}'
-        fig.update_traces(hovertemplate=hover_text)
+        # Customizing hover text to show percentage
+
 
         return fig
     else:
         return "Column not found or not categorical."
 
-# Discrete values
 def plot_discrete_distribution(dataframe, column_name):
     """
-    Function to plot the distribution of a specific discrete numerical variable in the dataset
+    Function to plot the density distribution of a specific discrete numerical variable in the dataset
     with custom hover text as a line chart, styled to match another chart in the dashboard.
 
     :param dataframe: Pandas DataFrame containing the dataset.
     :param column_name: The name of the discrete numerical column to plot.
-    :param line_color: Color of the line in the plot.
-    :return: A Plotly figure representing the distribution of the specified variable.
+    :return: A Plotly figure representing the density distribution of the specified variable.
     """
+    # Color map for different credit scores
+    color_map = {'Poor': 'palevioletred', 'Standard': 'grey', 'Good': 'lightblue'}
 
-    column_name_stripped = column_name.replace('_', ' ')
-    if column_name == 'Payment_Behaviour':
-        dataframe = dataframe[dataframe[column_name] != "!@9#%8"]
-    elif column_name == 'Interest_Rate':
-        dataframe[column_name] = dataframe[column_name].astype(float).apply(lambda x: int(x) if x.is_integer() else x)
+    # Set up the figure
+    fig = go.Figure()
 
-    if column_name in dataframe.columns and dataframe[column_name].dtype in ['int64', 'float64']:
-        # Counting the occurrences of each unique value in the column
-        count_data = dataframe[column_name].value_counts().sort_index()
+    # Plot each credit score category as a separate line
+    for score, color in color_map.items():
+        # Filter the dataframe for the current category
+        category_df = dataframe[dataframe['Credit_Score'] == score]
 
-        fig = go.Figure(go.Scatter(x=count_data.index, y=count_data.values, mode='lines+markers',
-                                   line=dict(color='lightblue'), marker=dict(color='lightblue')))
-        fig.update_layout(
-            title=f'Distribution of {column_name_stripped}',
-            xaxis_title=column_name_stripped,
-            yaxis_title='Count'
-        )
+        column_name_stripped = column_name.replace('_', ' ')
+        # Check if the dataframe is not empty
+        if not category_df.empty:
+            # Count occurrences of each unique value in the column
+            count_data = category_df[column_name].value_counts().sort_index()
 
-        # Customizing hover text
-        hover_text = f'<b>{column_name_stripped}:</b> %{{x}}<br><b>Number of Individuals:</b> %{{y}}'
-        fig.update_traces(hovertemplate=hover_text)
+            # Calculate the density for each value
+            density_data = count_data / count_data.sum()
 
-        return fig
-    else:
-        return "Column not found or not a discrete numerical type."
+            # Add a trace for this category
+            fig.add_trace(go.Scatter(
+                x=density_data.index,
+                y=density_data.values,
+                mode='lines+markers',
+                line=dict(color=color),
+                marker=dict(color=color),
+                name=score  # Use the credit score category as the trace name
+            ))
 
+    # Update layout
+    fig.update_layout(
+        title=f'Density Distribution of {column_name_stripped} by Credit Score',
+        xaxis_title=column_name_stripped,
+        yaxis_title='Density',
+        legend_title='Credit Score',
+        yaxis=dict(tickformat='.2%')  # Format y-axis as a percentage
+    )
 
-# Continuous variables
+    # Customizing hover text to show density
+    hover_text = f'<b>{column_name_stripped}:</b> %{{x}}<br><b>Density:</b> %{{y:.2%}}'
+    fig.update_traces(hovertemplate=hover_text)
 
-import plotly.graph_objects as go
+    return fig
 
 
 def plot_continuous_distribution(dataframe, column_name):
     """
-    Function to plot the distribution of a specific numerical variable in the dataset
-    with custom hover text. Filters out values above 150,000 for Annual_Income.
+    Function to plot a normalized density distribution of a specific numerical variable in the dataset
+    with custom hover text, for all data or separate by credit score categories.
 
     :param dataframe: Pandas DataFrame containing the dataset.
     :param column_name: The name of the numerical column to plot.
-    :return: A Plotly figure representing the distribution of the specified variable.
+    :return: A Plotly figure representing the normalized density distribution of the specified variable.
     """
     filtered_df = dataframe.copy()
     filtered_df[column_name] = filtered_df[column_name].dropna()
+    # Apply filter for Annual_Income
+    if column_name == 'Annual_Income':
+        filtered_df = filtered_df[filtered_df[column_name] <= 150000]
+    elif column_name == 'Total_EMI_per_month':
+        filtered_df = filtered_df[(filtered_df[column_name] >= 0) & (filtered_df[column_name] <= 500 )]
 
-    if column_name in filtered_df.columns and filtered_df[column_name].dtype in ['int64', 'float64']:
-        # Apply filter for Annual_Income
-        if column_name == 'Annual_Income':
-            filtered_df = filtered_df[filtered_df[column_name] <= 150000]
+    color_map = {'Poor': 'palevioletred', 'Standard': 'grey', 'Good': 'lightblue'}
 
-        fig = go.Figure(go.Histogram(x=filtered_df[column_name], marker_color='lightblue'))
+    fig = go.Figure()
 
-        # Customizing hover text
-        column_name_stripped = column_name.replace('_', ' ')
-        fig.update_traces(hovertemplate='<b>Range:</b> %{x}<br><b>Number of Individuals:</b> %{y}')
+    # Plot each category separately with normalization
+    for score, color in color_map.items():
+        category_df = dataframe[dataframe['Credit_Score'] == score]  # filter_by_credit_score function assumed
+        fig.add_trace(go.Histogram(
+            x=category_df[column_name],
+            marker_color=color,
+            xbins=dict(start=np.floor(category_df[column_name].min()),
+                       end=np.ceil(category_df[column_name].max())),
+            name=score,
+            histnorm='probability density'  # Normalize the histogram
+        ))
 
-        fig.update_layout(
-            title=f'Distribution of {column_name_stripped}',
-            xaxis_title=column_name_stripped,
-            yaxis_title='Count'
-        )
-
-        return fig
-
-
-def plot_loan_distribution(dataframe, bar_color):
-    """
-    Plot distribution of types of loans.
-
-    :param dataframe: DataFrame containing the data.
-    :param bar_color: Color of the bars in the chart.
-    :param chart_title: Title of the chart.
-    :return: Plotly figure object.
-    """
-    # Initialize a dictionary to count the frequency of each loan type
-    loan_counts = {}
-
-    # Process the 'Type_of_Loan' column to count different loans
-    for loan_list in dataframe['Type_of_Loan'].dropna():
-        # Replace 'and' with a comma or remove it based on the context
-        loan_list = loan_list.replace(' and ', ', ')
-        if loan_list not in ['Not specified', 'Unknown']:
-            loans = loan_list.split(', ')
-            for loan in loans:
-                loan_counts[loan] = loan_counts.get(loan, 0) + 1
-
-    # Convert the dictionary to a DataFrame
-    loan_counts_df = pd.DataFrame(list(loan_counts.items()), columns=['Loan_Type', 'Count'])
-
-    # Plotting the data
-    fig = px.bar(loan_counts_df, x='Loan_Type', y='Count', color_discrete_sequence=[bar_color])
-
+    # Specify the layout properties
     fig.update_layout(
-        title=f'Distribution of Loan Type',
-        xaxis_title='Loan Type',
-        yaxis_title='Count',
-        xaxis_type='category'
+        title=f'Density Distribution of {column_name.replace("_", " ")}',
+        xaxis_title=column_name.replace("_", " "),
+        yaxis_title='Density',  # Updated y-axis title to 'Density'
+        xaxis=dict(showline=True, showgrid=True, zeroline=False),
+        yaxis=dict(showline=True, showgrid=True, zeroline=False),
+        barmode='overlay',  # Overlap the histograms
+        legend_title='Credit Score'
     )
+    column_name_stripped = column_name.replace('_', ' ')
+    fig.update_traces(hovertemplate=f'<b>{column_name_stripped}:</b> %{{x}}<br><b>Density:</b> %{{y:.2%}}')
+
+
+    # Reduce opacity to see overlapping bars
+    fig.update_traces(opacity=0.6)
 
     return fig
+
+
+import plotly.graph_objects as go
+import pandas as pd
+
+def plot_loan_distribution(dataframe):
+    """
+    Plot distribution of types of loans for all credit scores.
+
+    :param dataframe: DataFrame containing the data.
+    :return: Plotly figure object.
+    """
+    # Define the color mapping
+    color_map = {'Poor': 'palevioletred', 'Standard': 'grey', 'Good': 'lightblue'}
+
+    # Initialize a dictionary to count the frequency of each loan type by credit score
+    loan_counts = {cs: {} for cs in color_map.keys()}
+
+    # Process the 'Type_of_Loan' column to count different loans by credit score
+    for _, row in dataframe.dropna(subset=['Type_of_Loan', 'Credit_Score']).iterrows():
+        loans = row['Type_of_Loan'].replace(' and ', ', ').split(', ')
+        credit_score = row['Credit_Score']
+        for loan in loans:
+            if loan not in ['Not specified', 'Unknown']:
+                loan_counts[credit_score][loan] = loan_counts[credit_score].get(loan, 0) + 1
+
+    # Convert the nested dictionary to a DataFrame for plotting
+    loan_counts_df = pd.DataFrame(loan_counts).fillna(0).reset_index().rename(columns={'index': 'Loan_Type'})
+
+    # Create a bar for each credit score category
+    bars = []
+    for credit_score, color in color_map.items():
+        bars.append(go.Bar(
+            name=credit_score,
+            x=loan_counts_df['Loan_Type'],
+            y=loan_counts_df[credit_score],
+            marker=dict(color=color),
+        ))
+
+    # Use `go.Figure` to create the stacked bar chart
+    fig = go.Figure(data=bars)
+    fig.update_layout(
+        barmode='stack',
+        title='Distribution of Loan Type Across All Credit Scores',
+        xaxis_title='Loan Type',
+        yaxis_title='Count',
+        legend_title='<b>Credit Score</b>',
+        xaxis={'categoryorder': 'total descending'}  # This will order the categories by total count
+    )
+
+    # Customizing hover text
+    hover_text = '<b>Loan Type:</b> %{x}<br><b>Number of Individuals:</b> %{y}<br><b>Credit Score:</b> %{data.name}'
+    fig.update_traces(hovertemplate=hover_text)
+
+    return fig
+
+def filter_by_credit_score(dataframe, filter_credit_score):
+    if filter_credit_score == 'poor':
+        dataframe = dataframe[dataframe['Credit_Score'] == 'Poor']
+    elif filter_credit_score == 'standard':
+        dataframe = dataframe[dataframe['Credit_Score'] == 'Standard']
+    elif filter_credit_score == 'excellent':
+        dataframe = dataframe[dataframe['Credit_Score'] == 'Good']
+    elif filter_credit_score == 'default':
+        dataframe = dataframe
+    return dataframe
