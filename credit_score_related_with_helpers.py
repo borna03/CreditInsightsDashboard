@@ -8,7 +8,7 @@ plot_discrete_data = pd.read_csv("full_processed_data_sorted.csv")
 
 # Bar Charts function
 def plot_bar_chart(data, category, bar_color,
-                   title, y_label='Average Credit Score',):
+                   title, y_label='Average Credit Score', ):
     """
     Plots a bar chart of the average credit score against a discrete variable.
     """
@@ -30,7 +30,6 @@ def plot_bar_chart(data, category, bar_color,
     fig = px.bar(average_credit_score, x=category, y='Credit_Score_Num',
                  title=title, labels={category: category, 'Credit_Score_Num': y_label},
                  color_discrete_sequence=[bar_color] * len(average_credit_score))
-
 
     fig.add_hline(y=2, line_dash="dash", line_color='rgba(128, 128, 128, 0.5)')
 
@@ -128,8 +127,8 @@ def plot_line_chart(data, category, line_color, title, y_label='Average Credit S
 
     # Customize the hovertemplate to not show the first 3 rows (i.e., OLS trendline info)
     # fig.update_traces(hovertemplate='Average Credit Score: %{y}, ' + category.replace('_', ' ') + ': %{x}')
-    fig.update_traces(hovertemplate='<b>Average Credit Score:</b> %{y}<br><b>' + category.replace('_', ' ') + ':</b> %{x}')
-
+    fig.update_traces(
+        hovertemplate='<b>Average Credit Score:</b> %{y}<br><b>' + category.replace('_', ' ') + ':</b> %{x}')
 
     # Update x-axis and y-axis titles
     fig.update_xaxes(title=category.replace('_', ' '))

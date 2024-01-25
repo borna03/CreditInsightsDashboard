@@ -15,7 +15,6 @@ from diverging_bar_chart_helpers import plot_correlation_chart, plot_continuous_
 # Set up basic logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-import plotly.graph_objects as go
 
 #### Loading and preping data for plotting ( Koko )
 # Load the CSV file into a DataFrame
