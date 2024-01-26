@@ -144,42 +144,47 @@ def plot_bar_type_of_loan(dataframe, bar_color, chart_title, y_label='Average Cr
     :param dataframe: DataFrame containing the data.
     :param bar_color: Color of the bars in the chart.
     :param chart_title: Title of the chart.
+    :param y_label: Y-axis label.
     :return: Plotly figure object.
     """
     # Map Credit Scores to numeric values
     credit_score_mapping = {'Poor': 1, 'Standard': 2, 'Good': 3}
     dataframe['Credit_Score_Numeric'] = dataframe['Credit_Score'].map(credit_score_mapping)
 
-    # Process the 'Type_of_Loan' column to separate different loans
-    loan_types = set()
-    for loan_list in dataframe['Type_of_Loan'].dropna():
-        # Replace 'and' with ','
-        loan_list = loan_list.replace(' and ', ', ')
-        loans = loan_list.split(', ')
-        for loan in loans:
-            loan_types.add(loan)
+    # Clean the 'Type_of_Loan' column by replacing ' and ' with ',' and removing any trailing commas
+    dataframe['Type_of_Loan'] = (
+        dataframe['Type_of_Loan']
+        .str.replace(' and ', ', ')
+        .str.rstrip(', ')  # Remove trailing commas
+        .str.strip()  # Remove leading and trailing whitespaces
+    )
 
-    # Create a dictionary to hold average credit scores for each loan type
-    loan_avg_scores = {}
-    for loan_type in loan_types:
-        # Filter dataframe for each loan type
-        # Ensure we replace 'and' in the filtering process as well
-        filtered_df = dataframe[dataframe['Type_of_Loan'].str.contains(loan_type.replace(' and ', ', '), na=False)]
-        avg_score = filtered_df['Credit_Score_Numeric'].mean()
-        loan_avg_scores[loan_type] = avg_score
+    # Explode the 'Type_of_Loan' column after splitting by ', '
+    dataframe['Type_of_Loan'] = dataframe['Type_of_Loan'].str.split(', ')
+    dataframe = dataframe.explode('Type_of_Loan')
 
-    # Convert the dictionary to a DataFrame and remove 'and' from the 'Loan_Type'
-    loan_avg_scores_df = pd.DataFrame(list(loan_avg_scores.items()), columns=['Loan_Type', 'Average_Credit_Score'])
-    loan_avg_scores_df['Loan_Type'] = loan_avg_scores_df['Loan_Type'].str.replace(' and ', ', ')
+    # Remove rows where 'Type_of_Loan' is 'Not Specified' or 'Unknown'
+    dataframe = dataframe[~dataframe['Type_of_Loan'].isin(['Not Specified', 'Unknown'])]
+
+    # Calculate the average credit score for each loan type
+    loan_avg_scores = (
+        dataframe.groupby('Type_of_Loan')['Credit_Score_Numeric']
+        .mean()
+        .reset_index(name='Average_Credit_Score')
+    )
 
     # Plotting the data
-    fig = px.bar(loan_avg_scores_df, x='Loan_Type', y='Average_Credit_Score', color_discrete_sequence=[bar_color],
-                 title=chart_title, labels={'Average_Credit_Score': y_label})
+    fig = px.bar(
+        loan_avg_scores,
+        x='Type_of_Loan',
+        y='Average_Credit_Score',
+        color_discrete_sequence=[bar_color],
+        title=chart_title,
+        labels={'Average_Credit_Score': y_label}
+    )
 
-    fig.add_hline(y=2, line_dash="dash", line_color='rgba(128, 128, 128, 0.5)')
-
-    # Set y-axis range and update x-axis tick labels
-    fig.update_yaxes(range=[1, 3])
-    fig.update_xaxes(tickangle=-45)
+    fig.add_hline(y=2, line_dash="dash", line_color="grey")
+    fig.update_yaxes(range=[0, 3])
+    fig.update_xaxes(tickangle=45)
 
     return fig

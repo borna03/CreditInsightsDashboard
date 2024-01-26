@@ -11,5 +11,7 @@ Credit_History_Age,A longer credit history is positively associated with a highe
 Total_EMI_per_month,"According to the graph, EMIs don't seem to correlate with credit scores that much. If your goal is solely to increase credit scores, you shouldn't be concerned about EMI scores."
 Amount_invested_monthly,Regular investment activity may reflect financial stability and is shown to correlate with higher credit scores.
 Monthly_Balance,"Maintaining a higher monthly balance in your accounts might be indicative of sound financial health, correlating with a higher credit score."
-Credit_Utilization_Ratio,A moderate credit utilization ratio seems to have a neutral effect on the average credit score.
+Credit_Utilization_Ratio,"1. **Credit Utilization Ratio:** Reflects the amount of credit used relative to the total available.
+2. **Distribution:** Most individuals fall between a 20-40 ratio, with 'Good' scores showing a tighter concentration.
+3. **Average Score by Utilization:** Average credit scores remain steady across utilization levels, indicating a neutral impact."
 Annual_Income,The graph suggests that a higher annual income is generally associated with a higher average credit score. This indicates that boosting your income could positively influence your creditworthiness and potentially help you increase your credit score.

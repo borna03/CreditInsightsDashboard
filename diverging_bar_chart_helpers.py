@@ -208,40 +208,49 @@ def plot_continuous_distribution(dataframe, column_name):
     return fig
 
 
-import plotly.graph_objects as go
-import pandas as pd
-
 def plot_loan_distribution(dataframe):
     """
-    Plot distribution of types of loans for all credit scores.
+    Plot distribution of types of loans normalized by density for all credit scores.
 
     :param dataframe: DataFrame containing the data.
     :return: Plotly figure object.
     """
+
     # Define the color mapping
     color_map = {'Poor': 'palevioletred', 'Standard': 'grey', 'Good': 'lightblue'}
 
-    # Initialize a dictionary to count the frequency of each loan type by credit score
-    loan_counts = {cs: {} for cs in color_map.keys()}
-
     # Process the 'Type_of_Loan' column to count different loans by credit score
-    for _, row in dataframe.dropna(subset=['Type_of_Loan', 'Credit_Score']).iterrows():
-        loans = row['Type_of_Loan'].replace(' and ', ', ').split(', ')
-        credit_score = row['Credit_Score']
-        for loan in loans:
-            if loan not in ['Not specified', 'Unknown']:
-                loan_counts[credit_score][loan] = loan_counts[credit_score].get(loan, 0) + 1
+    loan_counts = dataframe.dropna(subset=['Type_of_Loan', 'Credit_Score']).copy()
+    loan_counts['Loan_Count'] = 1  # Add a column to represent each row as a count of 1
 
-    # Convert the nested dictionary to a DataFrame for plotting
-    loan_counts_df = pd.DataFrame(loan_counts).fillna(0).reset_index().rename(columns={'index': 'Loan_Type'})
+    # Clean the 'Type_of_Loan' column by removing the word 'and ' if it appears at the beginning of a loan type
+    # Also remove any trailing commas and additional whitespace
+    loan_counts['Type_of_Loan'] = (
+        loan_counts['Type_of_Loan']
+        .str.replace(r'\band\s+', '', regex=True)  # remove 'and' followed by any number of spaces
+        .str.strip(', ')  # remove leading/trailing commas and whitespace
+    )
+
+    # Expand the 'Type_of_Loan' column so each type of loan is a separate row
+    # Split only on comma followed by a space
+    expanded_loans = loan_counts['Type_of_Loan'].str.split(', ', expand=True).stack().str.strip()
+    expanded_loans.name = 'Type_of_Loan'
+    loan_counts = loan_counts.drop('Type_of_Loan', axis=1).join(expanded_loans.reset_index(level=1, drop=True))
+
+    # Remove any instances that are 'Not specified' or 'Unknown'
+    loan_counts = loan_counts[~loan_counts['Type_of_Loan'].str.lower().isin(['not specified', 'unknown'])]
+
+    # Group by 'Type_of_Loan' and 'Credit_Score' and calculate the count
+    loan_density = loan_counts.groupby(['Type_of_Loan', 'Credit_Score']).size().unstack(fill_value=0)
+    loan_density = loan_density.div(loan_density.sum(axis=0), axis=1)
 
     # Create a bar for each credit score category
     bars = []
     for credit_score, color in color_map.items():
         bars.append(go.Bar(
             name=credit_score,
-            x=loan_counts_df['Loan_Type'],
-            y=loan_counts_df[credit_score],
+            x=loan_density.index,
+            y=loan_density[credit_score],
             marker=dict(color=color),
         ))
 
@@ -249,18 +258,19 @@ def plot_loan_distribution(dataframe):
     fig = go.Figure(data=bars)
     fig.update_layout(
         barmode='stack',
-        title='Distribution of Loan Type Across All Credit Scores',
-        xaxis_title='Loan Type',
-        yaxis_title='Count',
-        legend_title='<b>Credit Score</b>',
-        xaxis={'categoryorder': 'total descending'}  # This will order the categories by total count
+        title='Density Distribution of Loan Type Across All Credit Scores',
+        xaxis_title='Type of Loan',
+        yaxis_title='Density',
+        legend_title='Credit Score',
+        yaxis=dict(tickformat=',.0%')  # Format y-axis as a percentage
     )
 
     # Customizing hover text
-    hover_text = '<b>Loan Type:</b> %{x}<br><b>Number of Individuals:</b> %{y}<br><b>Credit Score:</b> %{data.name}'
+    hover_text = '<b>Type of Loan:</b> %{x}<br><b>Density:</b> %{y:.2%}<br><b>Credit Score:</b> %{data.name}'
     fig.update_traces(hovertemplate=hover_text)
 
     return fig
+
 
 def filter_by_credit_score(dataframe, filter_credit_score):
     if filter_credit_score == 'poor':

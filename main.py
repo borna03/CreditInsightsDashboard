@@ -148,6 +148,7 @@ plot_descriptions_dict = plot_descriptions_df.set_index('Plot Name')['Descriptio
 )
 def update_dynamic_graph(click_data):  # selected_option
     ctx = dash.callback_context
+    plot_discrete_data_copy1 = plot_discrete_data.copy()
 
     # Check which input was triggered
     if not ctx.triggered:
@@ -164,7 +165,7 @@ def update_dynamic_graph(click_data):  # selected_option
 
     title_selected_option = selected_option.replace('_', ' ')
     if selected_option in ['Type_of_Loan']:
-        fig = credit_score_related_with_helpers.plot_bar_type_of_loan(plot_discrete_data, 'lightblue',
+        fig = credit_score_related_with_helpers.plot_bar_type_of_loan(plot_discrete_data_copy1, 'lightblue',
                                                                       f'Average Credit Score by Type of Loan')
     elif selected_option in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Payment_of_Min_Amount']:
         fig = credit_score_related_with_helpers.plot_bar_chart(plot_discrete_data, selected_option, 'lightblue',
@@ -243,6 +244,7 @@ def update_radar_chart(slider_values, selected_columns):
     [Input('diverging-bar-chart', 'clickData')]
 )
 def update_scatter_plot(click_data):
+    plot_discrete_data_copy = plot_discrete_data.copy()
 
     if click_data is None:
         return px.scatter(title='Scatter Plot')
@@ -250,11 +252,11 @@ def update_scatter_plot(click_data):
         clicked_category = click_data['points'][0]['y']
         logging.info(f"Clicked Category: {clicked_category}")
         if clicked_category in ['Type_of_Loan']:
-            fig = plot_loan_distribution(plot_discrete_data)
+            fig = plot_loan_distribution(plot_discrete_data_copy)
         elif clicked_category in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Payment_of_Min_Amount']:
-            fig = plot_categorical_distribution(plot_discrete_data, clicked_category)
+            fig = plot_categorical_distribution(plot_discrete_data_copy, clicked_category)
         elif clicked_category in ['Num_Credit_Card', 'Num_Bank_Accounts', 'Interest_Rate', 'Num_of_Loan']:
-            fig = plot_discrete_distribution(plot_discrete_data, clicked_category)
+            fig = plot_discrete_distribution(plot_discrete_data_copy, clicked_category)
         else:
             fig = plot_continuous_distribution(plot_continuous_data, clicked_category)
 
