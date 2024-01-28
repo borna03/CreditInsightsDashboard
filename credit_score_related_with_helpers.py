@@ -8,7 +8,7 @@ plot_discrete_data = pd.read_csv("full_processed_data_sorted.csv")
 
 # Bar Charts function
 def plot_bar_chart(data, category, bar_color,
-                   title, y_label='Average Credit Score', ):
+                   title, x_label, y_label='Average Credit Score'):
     """
     Plots a bar chart of the average credit score against a discrete variable.
     """
@@ -40,13 +40,14 @@ def plot_bar_chart(data, category, bar_color,
     fig.update_layout(showlegend=True)
 
     # Update x-axis and y-axis titles
-    fig.update_xaxes(title=category.replace('_', ' '))
+    # fig.update_xaxes(title=category.replace('_', ' '))
+    fig.update_xaxes(title=x_label)
     fig.update_yaxes(title=y_label)
 
     return fig
 
 
-def plot_regression_line(data, x_column, line_color, y_column, title):
+def plot_regression_line(data, x_column, line_color, y_column, title, x_label):
     """
     Plots a line chart of the average credit score against a discrete variable.
     The line in this chart represents the relationship between credit score and the chosen variable.
@@ -59,10 +60,15 @@ def plot_regression_line(data, x_column, line_color, y_column, title):
         IQR = Q3 - Q1
         lower_bound = Q1 - 1.5 * IQR
         upper_bound = Q3 + 1.5 * IQR
-        data = data[(data[x_column] >= lower_bound) & (data[x_column] <= upper_bound)]
+        filtered_df = data[(data[x_column] >= lower_bound) & (data[x_column] <= upper_bound)]
+
+    elif x_column == 'Total_EMI_per_month':
+        filtered_df = data[(data[x_column] >= 0) & (data[x_column] <= 500)]
+    else:
+        filtered_df = data
 
     # Create a scatter plot with a trendline (hide the scatter points)
-    fig = px.scatter(data, x=x_column, y=y_column, trendline="ols",
+    fig = px.scatter(filtered_df, x=x_column, y=y_column, trendline="ols",
                      labels={x_column: x_column.replace('_', ' '), y_column: 'Average Credit Score'},
                      title=title, range_y=[1, 3])
 
@@ -80,13 +86,13 @@ def plot_regression_line(data, x_column, line_color, y_column, title):
     fig.data[1].line.color = line_color
 
     # Update axis titles
-    fig.update_xaxes(title=x_column.replace('_', ' '))
+    fig.update_xaxes(title=x_label)
     fig.update_yaxes(title='Average Credit Score')
 
     return fig
 
 
-def plot_line_chart(data, category, line_color, title, y_label='Average Credit Score'):
+def plot_line_chart(data, category, line_color, title, x_label, y_label='Average Credit Score'):
     """
     Plots the average credit score based on different categories using plotly as a line chart.
 
@@ -97,6 +103,7 @@ def plot_line_chart(data, category, line_color, title, y_label='Average Credit S
     title (str): The title of the plot.
     y_label (str, optional): Label for the y-axis. Defaults to 'Average Credit Score'.
     horizontal_line (bool, optional): Whether to include a horizontal line representing the average score. Defaults to True.
+    :type x_label: string
     """
     # Map the categorical credit scores to numerical values
     credit_score_mapping = {'Poor': 1, 'Standard': 2, 'Good': 3}
@@ -131,13 +138,13 @@ def plot_line_chart(data, category, line_color, title, y_label='Average Credit S
         hovertemplate='<b>Average Credit Score:</b> %{y}<br><b>' + category.replace('_', ' ') + ':</b> %{x}')
 
     # Update x-axis and y-axis titles
-    fig.update_xaxes(title=category.replace('_', ' '))
+    fig.update_xaxes(title=x_label)
     fig.update_yaxes(title=y_label)
 
     return fig
 
 
-def plot_bar_type_of_loan(dataframe, bar_color, chart_title, y_label='Average Credit Score'):
+def plot_bar_type_of_loan(dataframe, bar_color, chart_title, y_label='Average Credit Score', x_label='Type of Loan'):
     """
     Plot average credit score by type of loan.
 
@@ -151,20 +158,20 @@ def plot_bar_type_of_loan(dataframe, bar_color, chart_title, y_label='Average Cr
     credit_score_mapping = {'Poor': 1, 'Standard': 2, 'Good': 3}
     dataframe['Credit_Score_Numeric'] = dataframe['Credit_Score'].map(credit_score_mapping)
 
-    # Clean the 'Type_of_Loan' column by replacing ' and ' with ',' and removing any trailing commas
+    # Clean the 'Type_of_Loan' column by removing ' and ' if it appears and also any trailing commas and whitespace
     dataframe['Type_of_Loan'] = (
         dataframe['Type_of_Loan']
-        .str.replace(' and ', ', ')
-        .str.rstrip(', ')  # Remove trailing commas
-        .str.strip()  # Remove leading and trailing whitespaces
+        .str.replace(r'\band\s+', '', regex=True)  # remove 'and' followed by any number of spaces
+        .str.strip(', ')  # remove leading/trailing commas and whitespace
     )
 
-    # Explode the 'Type_of_Loan' column after splitting by ', '
-    dataframe['Type_of_Loan'] = dataframe['Type_of_Loan'].str.split(', ')
-    dataframe = dataframe.explode('Type_of_Loan')
+    # Expand the 'Type_of_Loan' column so each type of loan is a separate row
+    expanded_loans = dataframe['Type_of_Loan'].str.split(', ', expand=True).stack().str.strip()
+    expanded_loans.name = 'Type_of_Loan'
+    dataframe = dataframe.drop('Type_of_Loan', axis=1).join(expanded_loans.reset_index(level=1, drop=True))
 
     # Remove rows where 'Type_of_Loan' is 'Not Specified' or 'Unknown'
-    dataframe = dataframe[~dataframe['Type_of_Loan'].isin(['Not Specified', 'Unknown'])]
+    dataframe = dataframe[~dataframe['Type_of_Loan'].str.lower().isin(['not specified', 'unknown'])]
 
     # Calculate the average credit score for each loan type
     loan_avg_scores = (
@@ -180,7 +187,7 @@ def plot_bar_type_of_loan(dataframe, bar_color, chart_title, y_label='Average Cr
         y='Average_Credit_Score',
         color_discrete_sequence=[bar_color],
         title=chart_title,
-        labels={'Average_Credit_Score': y_label}
+        labels={'Average_Credit_Score': y_label, 'Type_of_Loan': x_label}
     )
 
     fig.add_hline(y=2, line_dash="dash", line_color="grey")

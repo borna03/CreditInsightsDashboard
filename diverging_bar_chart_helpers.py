@@ -47,7 +47,7 @@ def plot_correlation_chart(df):
 
 
 # Categorical variables
-def plot_categorical_distribution(dataframe, column_name):
+def plot_categorical_distribution(dataframe, column_name, x_label):
     """
     Function to create a Plotly figure representing the density distribution of a specified
     categorical variable from a CSV data file, differentiated by credit score.
@@ -58,8 +58,10 @@ def plot_categorical_distribution(dataframe, column_name):
     """
     # Define the color mapping
     color_map = {'Poor': 'palevioletred', 'Standard': 'grey', 'Good': 'lightblue'}
-
+    dataframe = dataframe.copy()
     column_name_stripped = column_name.replace('_', ' ')
+    if column_name == 'Payment_Behaviour':
+        dataframe = dataframe[dataframe[column_name] != "!@9#%8"]
 
     if column_name in dataframe.columns and dataframe[column_name].dtype == 'object':
         # Create a grouped dataframe by `column_name` and `Credit_Score`
@@ -86,8 +88,8 @@ def plot_categorical_distribution(dataframe, column_name):
         fig = go.Figure(data=bars)
         fig.update_layout(
             barmode='stack',
-            title=f'Density Distribution of {column_name_stripped} by Credit Score',
-            xaxis_title=column_name_stripped,
+            title=f'Density Distribution of {x_label} by Credit Score',
+            xaxis_title=x_label,
             yaxis_title='Density',
             legend_title='<b>Credit Score</b>',
             yaxis=dict(tickformat=',.0%')  # Format y-axis as a percentage
@@ -100,7 +102,7 @@ def plot_categorical_distribution(dataframe, column_name):
     else:
         return "Column not found or not categorical."
 
-def plot_discrete_distribution(dataframe, column_name):
+def plot_discrete_distribution(dataframe, column_name, x_label):
     """
     Function to plot the density distribution of a specific discrete numerical variable in the dataset
     with custom hover text as a line chart, styled to match another chart in the dashboard.
@@ -141,8 +143,8 @@ def plot_discrete_distribution(dataframe, column_name):
 
     # Update layout
     fig.update_layout(
-        title=f'Density Distribution of {column_name_stripped} by Credit Score',
-        xaxis_title=column_name_stripped,
+        title=f'Density Distribution of {x_label} by Credit Score',
+        xaxis_title=x_label,
         yaxis_title='Density',
         legend_title='Credit Score',
         yaxis=dict(tickformat='.2%')  # Format y-axis as a percentage
@@ -155,7 +157,7 @@ def plot_discrete_distribution(dataframe, column_name):
     return fig
 
 
-def plot_continuous_distribution(dataframe, column_name):
+def plot_continuous_distribution(dataframe, column_name, x_label):
     """
     Function to plot a normalized density distribution of a specific numerical variable in the dataset
     with custom hover text, for all data or separate by credit score categories.
@@ -178,7 +180,7 @@ def plot_continuous_distribution(dataframe, column_name):
 
     # Plot each category separately with normalization
     for score, color in color_map.items():
-        category_df = dataframe[dataframe['Credit_Score'] == score]  # filter_by_credit_score function assumed
+        category_df = filtered_df[filtered_df['Credit_Score'] == score]  # filter_by_credit_score function assumed
         fig.add_trace(go.Histogram(
             x=category_df[column_name],
             marker_color=color,
@@ -190,8 +192,9 @@ def plot_continuous_distribution(dataframe, column_name):
 
     # Specify the layout properties
     fig.update_layout(
-        title=f'Density Distribution of {column_name.replace("_", " ")}',
-        xaxis_title=column_name.replace("_", " "),
+        #title=f'Density Distribution of {column_name.replace("_", " ")} by Credit Score',
+        title=f'Density Distribution of {x_label} by Credit Score',
+        xaxis_title=x_label,
         yaxis_title='Density',  # Updated y-axis title to 'Density'
         xaxis=dict(showline=True, showgrid=True, zeroline=False),
         yaxis=dict(showline=True, showgrid=True, zeroline=False),

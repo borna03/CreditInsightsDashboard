@@ -1,17 +1,85 @@
-Plot Name,Description
-Occupation,This plot shows the relationship between an individual's occupation and their average credit score. It suggests that occupation plays a minor role in credit score formation.
-Credit_Mix,A diverse credit mix (labeled good) will yield best results. Individuals with diverse credit types can have better credit scores.
-Payment_Behaviour,"If you're looking to improve your credit score, infrequent small or medium value payments seem to have the least positive impact, as indicated by the lower average credit scores in these categories."
-Num_Bank_Accounts,This graph illustrates the correlation between the number of bank accounts and average credit score.
-Num_Credit_Card,"This chart suggests that having a moderate number of credit cards might be associated with a higher credit score, but having too many could be less beneficial."
-Interest_Rate,"The graph indicates that generally, individuals with lower interest rates tend to have higher average credit scores, which implies that improving your credit score might help you qualify for loans with more favorable terms."
-Monthly_Inhand_Salary,"We see a positive trend indicating that higher monthly income is generally associated with a higher credit score, suggesting that improving your income might help improve your creditworthiness."
-Outstanding_Debt,"We see a negative trend, indicating that higher outstanding debt is generally associated with a lower credit score, suggesting that reducing debt could be beneficial for your credit rating."
-Credit_History_Age,A longer credit history is positively associated with a higher credit score.
-Total_EMI_per_month,"According to the graph, EMIs don't seem to correlate with credit scores that much. If your goal is solely to increase credit scores, you shouldn't be concerned about EMI scores."
-Amount_invested_monthly,Regular investment activity may reflect financial stability and is shown to correlate with higher credit scores.
-Monthly_Balance,"Maintaining a higher monthly balance in your accounts might be indicative of sound financial health, correlating with a higher credit score."
-Credit_Utilization_Ratio,"1. **Credit Utilization Ratio:** Reflects the amount of credit used relative to the total available.
-2. **Distribution:** Most individuals fall between a 20-40 ratio, with 'Good' scores showing a tighter concentration.
-3. **Average Score by Utilization:** Average credit scores remain steady across utilization levels, indicating a neutral impact."
-Annual_Income,The graph suggests that a higher annual income is generally associated with a higher average credit score. This indicates that boosting your income could positively influence your creditworthiness and potentially help you increase your credit score.
+Plot Name,Description,x_axis
+Occupation,"1. **What does it represent?** The diversity of employment fields among credit applicants.
+2. **What does the density distribution show us?** There's a varied distribution across different occupations, with no single occupation dominating the 'Good' credit score category.
+3. **Average Score by Occupation:** The average credit scores seem consistent across most occupations, suggesting that occupation alone doesn't significantly affect credit scores.
+4. **Overall:** Occupation shows a very low correlation to credit score, indicating other factors are more indicative of creditworthiness.",Occupation
+Credit_Mix,"1. **What does it represent?** The variety of credit types managed by an individual. 
+2. **What does the density distribution show us?** Individuals with a 'Good' credit mix tend to have a higher density in the 'Good' credit score category.
+3. **Average Score by Credit Mix:** A good credit mix correlates with higher average credit scores, implying a well-managed credit portfolio positively impacts scores.
+4. **Overall:** A moderate correlation with credit score, reinforcing the importance of a diversified credit portfolio.",Credit Mix
+Payment_Behaviour,"1. **What does it represent?** Patterns of payment, including timeliness and the amount paid.
+2. **What does the distribution show us?** Regular and higher value payments are more common among those with 'Good' credit scores.
+3. **Average Score by Payment Behaviour:** Consistently responsible payment behavior is associated with higher credit scores.
+4. **Overall:** There is a noticeable correlation between payment behavior and credit scores, suggesting that timely and complete payments can improve creditworthiness.",Payment Behaviour
+Num_Bank_Accounts,"1. **What does it represent?** The number of bank accounts an individual possesses.
+2. **What does the density distribution show us?** A balanced distribution across credit scores, with no clear trend favoring 'Good' credit scores.
+3. **Average Score by Num Bank Accounts:** The number of bank accounts shows a weak correlation with credit scores, with no significant impact observed.
+4. **Overall:** The correlation between the number of bank accounts and credit scores is minimal, indicating the number of accounts is a less significant factor in credit scoring.",Number of Bank Accounts
+Num_Credit_Card,"1. **What does it represent?** TThe number of credit cards held by an individual.
+2. **What does the density distribution show us?** A moderate number of credit cards is common among individuals with 'Good' credit scores, but having too many does not necessarily correlate with better scores.
+3. **Average Score by Num Credit Card:** Holding a moderate number of credit cards may be beneficial to credit scores, but an excessive number could be detrimental.
+4. **Overall:** The data shows a mild positive correlation between the number of credit cards and credit scores up to a certain point, after which it may negatively impact the score.",Number of Credit Cards
+Interest_Rate,"1. **What does it represent?** The interest rates applicable to an individual's credit lines.
+2. **What does the density distribution show us?** Individuals with lower interest rates generally have better credit scores.
+3. **Average Score by Interest Rate:** Lower interest rates often correlate with higher credit scores, implying that improving creditworthiness can lead to more favorable loan terms.
+4. **Overall:** Interest rate has a negative correlation with credit score, indicating that as creditworthiness improves, individuals may access credit at lower interest rates.",Interest Rate (in %)
+Monthly_Inhand_Salary,"1. **What does it represent?** The net monthly income an individual receives.
+2. **What does the density distribution show us?** Higher monthly incomes are generally associated with 'Good' credit scores.
+3. **Average Score by Monthly Inhand Salary:** There is a positive trend where higher income correlates with better credit scores.
+4. **Overall:** Monthly in-hand salary shows a positive correlation with credit scores, suggesting that higher income levels may support creditworthiness.",Monthly Inhand Salary (In USD)
+Outstanding_Debt,"1. **What does it represent?** The total amount of debt an individual currently owes.
+2. **What does the density distribution show us?** Higher outstanding debts are more frequently associated with 'Poor' credit scores.
+3. **Average Score by Outstanding Debt:** Generally, a higher amount of outstanding debt is correlated with lower credit scores.
+4. **Overall:** Outstanding debt has a negative correlation with credit scores, indicating that higher debt levels are often linked to poorer creditworthiness.
+",Outstanding Debt (in thousands of USD)
+Credit_History_Age,"1. **What does it represent?** The length of time an individual has had credit.
+2. **What does the density distribution show us?** The majority of individuals have a shorter credit history, but those with longer histories are more likely to have 'Good' credit scores.
+3. **Average Score by Credit History Age:** There is an upward trend indicating that a longer credit history may correlate with higher credit scores.
+4. **Overall:** There is a positive correlation, suggesting that a longer credit history can positively influence credit scores.
+",Credit History Age (in Months)
+Total_EMI_per_month,"1. **What does it represent?** The total monthly equated installment payments an individual has to make.
+2. **What does the density distribution show us?** Most individuals have lower EMI amounts, with the density tapering off as the amount increases.
+3. **Average Score by Total EMI per Month:** The average credit score slightly decreases as the total EMI per month increases.
+4. **Overall:**Higher EMI payments per month might be associated with a slight decrease in credit scores, indicating financial strain.",Total EMI per month (in USD)
+Amount_invested_monthly,"1. **What does it represent?** The sum of money an individual invests each month.
+2. **What does the density distribution show us?** There is a broad distribution, but those who invest more tend to have higher credit scores.
+3. **Average Score by Amount Invested Monthly:** There is a positive correlation, showing that individuals who invest more tend to have higher credit scores.
+4. **Overall:** Regular monthly investments might be indicative of financial health, which correlates with better credit scores.",Amount invested monthly (in USD)
+Monthly_Balance,"1. **What does it represent?** The amount of money remaining after all monthly expenditures.
+2. **What does the density distribution show us?** Individuals with higher monthly balances are predominantly in the 'Good' credit score category, suggesting prudent financial management.
+3. **Average Score by Monthly Balance:** The trend indicates that as monthly balances increase, so do credit scores, implying a positive impact on creditworthiness.
+4. **Overall:** A significant positive correlation with credit score is seen, emphasizing the importance of maintaining a healthy monthly balance for a good credit rating.",Monthly Balance (in USD)
+Credit_Utilization_Ratio,"1. **What does it represent?** Reflects the amount of credit used relative to the total available.
+2. **What does the density distribution show us?** Most individuals fall between a 20-40 ratio, with 'Good' scores showing a tighter concentration.
+3. **Average Score by Utilization:** Average credit scores remain steady across utilization levels, indicating a neutral impact.
+4. **Overall**: Has a low correlation with credit score. From the distribution plot we can infer that individuals with poor credit scores usually have slightly lower utilization ratio ",Credit Utilization Ratio (in %)
+Annual_Income,The graph suggests that a higher annual income is generally associated with a higher average credit score. This indicates that boosting your income could positively influence your creditworthiness and potentially help you increase your credit score.,
+Changed_Credit_Limit,"1. **What does it represent?** The % change by which an individual's credit limit has been adjusted, either increased or decreased.
+2. **What does the density distribution show us?** Most credit score categories have a varied distribution of credit limit changes, with no single group dominating.
+3. **Average Score by Changed Credit Limit:** The average credit score appears to decrease slightly as the credit limit changes increase, suggesting that higher increases or decreases may be linked to lower credit scores.
+4. **Overall:** There is a mild negative correlation with credit score, potentially indicating that significant changes in credit limits might be associated with financial instability or riskier credit behavior.",Changed Credit Limit (in %)
+Num_of_Delayed_Payment,"1. **What does it represent?** The average number of payments delayed by a person
+2. **What does the density distribution show us?** Most individuals have few or no delayed payments, particularly those with 'Good' credit scores.
+3. **Average Score by Number of Delayed Payments:** The average credit score decreases significantly with an increasing number of delayed payments.
+4. **Overall:** There is a strong negative correlation; more delayed payments are associated with lower credit scores, underscoring the importance of timely payments.",Number of Delayed Payments
+Num_Credit_Inquiries,"1. **What does it represent?** The number of times an individual's credit report has been accessed by lenders.
+2. **What does the density distribution show us?** A high number of inquiries is not common, and those with fewer inquiries tend to have better credit scores.
+3. **Average Score by Number of Credit Inquiries:** There's a slight trend showing that fewer inquiries may correlate with higher credit scores.
+4. **Overall:** Frequent credit inquiries might slightly lower credit scores, suggesting that excessive credit seeking could be perceived negatively.",Number of Credit Inquiries
+Num_of_Loan,"1. **What does it represent?** The total number of loans an individual currently has.
+2. **What does the density distribution show us?** There is a diverse distribution, but having fewer loans is more common among individuals with 'Good' credit scores.
+3. **Average Score by Number of Loans:** Generally, individuals with fewer loans tend to have higher credit scores.
+4. **Overall:** There seems to be a negative correlation, with a higher number of loans potentially lowering credit scores.",Number of Loans
+Payment_of_Min_Amount,"1. **What does it represent?** Whether only the minimum amount was paid by the individual
+2. **What does the density distribution show us?** Those who consistently pay the minimum amount or more have a higher density in the 'Good' score category.
+3. **Average Score by Payment of Minimum Amount:** Not paying the minimum amount correlates with significantly lower credit scores.
+4. **Overall:** Failing to pay even the minimum amount due can have a markedly negative effect on credit scores.",Payment of Minimum Amount
+Delay_from_due_date,"1. **What does it represent?** The average number of days payments are made past the due date.
+2. **What does the density distribution show us?** A high concentration of 'Poor' and 'Standard' credit scores are observed among individuals with longer delays, while 'Good' scores are less common.
+3. **Average Score by Delay from Due Date:** There is a clear downward trend, indicating that longer delays correlate with lower credit scores.
+4. **Overall:** A strong negative correlation is observed, stressing the negative impact of late payments on credit scores.",Delay from Due Date (in Days)
+Type_of_Loan,"1. **What does it represent?** This represents the category of loan taken by individuals, such as auto loans, credit builder loans, etc.
+2. **What does the density distribution show us?** The density distribution across all credit scores shows a relatively even spread among the various loan types, indicating that no single type of loan is overwhelmingly associated with a particular credit score category.
+3. **Average Score by Type of Loan:** The average credit score by type of loan is relatively consistent across different loan types, suggesting that the type of loan does not have a significant differential impact on the average credit score.
+4. **Overall:** Considering the similar average scores across loan types, it seems that the type of loan might not be a strong standalone indicator of credit score. It suggests that other factors might play a more pivotal role in determining credit scores than the type of loan itself.
+",Types of Loans

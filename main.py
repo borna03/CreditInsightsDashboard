@@ -137,6 +137,7 @@ app.layout = html.Div([
 # For each plot that gets displayed by the dropdown, we add a description, helping the user interpret the specific plot.
 plot_descriptions_df = pd.read_csv('plot_descriptions.csv')
 plot_descriptions_dict = plot_descriptions_df.set_index('Plot Name')['Description'].to_dict()
+x_axis_dict = plot_descriptions_df.set_index('Plot Name')['x_axis'].to_dict()
 
 
 @app.callback(
@@ -149,6 +150,8 @@ plot_descriptions_dict = plot_descriptions_df.set_index('Plot Name')['Descriptio
 def update_dynamic_graph(click_data):  # selected_option
     ctx = dash.callback_context
     plot_discrete_data_copy1 = plot_discrete_data.copy()
+
+
 
     # Check which input was triggered
     if not ctx.triggered:
@@ -163,36 +166,61 @@ def update_dynamic_graph(click_data):  # selected_option
         else:
             return dash.no_update, {'display': 'none'}, ""
 
+    # Extract description from previously loaded csv
+    description = plot_descriptions_dict.get(selected_option, "No description available.")
+
+    # Extract x-axis title
+    x_axis_title = x_axis_dict.get(selected_option, "No title available.")
+
     title_selected_option = selected_option.replace('_', ' ')
     if selected_option in ['Type_of_Loan']:
         fig = credit_score_related_with_helpers.plot_bar_type_of_loan(plot_discrete_data_copy1, 'lightblue',
-                                                                      f'Average Credit Score by Type of Loan')
+                                                                      f'Average Credit Score by Type of Loan', x_axis_title)
     elif selected_option in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Payment_of_Min_Amount']:
         fig = credit_score_related_with_helpers.plot_bar_chart(plot_discrete_data, selected_option, 'lightblue',
-                                                               f'Average Credit Score by {title_selected_option}')
+                                                               f'Average Credit Score by {x_axis_title}', x_axis_title)
     elif selected_option in ['Num_Credit_Card', 'Num_Bank_Accounts', 'Interest_Rate', 'Delay_from_due_date',
                              'Num_of_Delayed_Payment', 'Num_Credit_Inquiries']:
         fig = credit_score_related_with_helpers.plot_line_chart(plot_discrete_data, selected_option, 'lightblue',
-                                                                f'Average Credit Score by {title_selected_option}')
+                                                                f'Average Credit Score by {x_axis_title}', x_axis_title)
     else:
         fig = credit_score_related_with_helpers.plot_regression_line(plot_continuous_data, selected_option, 'lightblue',
                                                                      'Credit_Score_Numeric',
-                                                                     f'Average Credit Score by {title_selected_option}')
+                                                                     f'Average Credit Score by {x_axis_title}', x_axis_title)
+
+    # Title for the markdown with an emoji
+    title_with_emoji = f"📊 Key Insights on **{title_selected_option}**\n\n"
 
     # Get the description for the selected option from the loaded dictionary
-    description = plot_descriptions_dict.get(selected_option, "No description available.")
-    description_html = html.Div([
-        html.Div('🔍 Interpretation:', style={
-            'font-size': '18px',
-            'font-weight': 'bold',
-            'color': '#333',
-            'margin-bottom': '10px'
-        }),
-        html.Div(description, style={
-            'font-size': '16px',
-            'color': '#555'
-        })
-    ], style={
+    # description = plot_descriptions_dict.get(selected_option, "No description available.")
+
+    # Full markdown text including the title
+    full_markdown_text = title_with_emoji + description
+    # description_html = html.Div([
+    #     html.Div('🔍 Interpretation:', style={
+    #         'font-size': '18px',
+    #         'font-weight': 'bold',
+    #         'color': '#333',
+    #         'margin-bottom': '10px'
+    #     }),
+    #     html.Div(description, style={
+    #         'font-size': '16px',
+    #         'color': '#555'
+    #     })
+    # ], style={
+    #     'border': '1px solid #e1e1e1',
+    #     'border-radius': '8px',
+    #     'background-color': '#f9f9f9',
+    #     'padding': '20px',
+    #     'margin-top': '10px',
+    #     'box-shadow': '0 4px 8px rgba(0,0,0,0.1)',
+    #     'transition': 'transform 0.3s ease-in-out',
+    #     'transform': 'translateY(-3px)',
+    #     'cursor': 'default'
+    # })
+    description_markdown = dcc.Markdown(children=full_markdown_text, style={
+        'font-size': '18px',
+        'color': '#555',
         'border': '1px solid #e1e1e1',
         'border-radius': '8px',
         'background-color': '#f9f9f9',
@@ -204,7 +232,7 @@ def update_dynamic_graph(click_data):  # selected_option
         'cursor': 'default'
     })
 
-    return fig, {'display': 'block'}, description_html
+    return fig, {'display': 'block'}, description_markdown
 
 
 @app.callback(
@@ -246,19 +274,25 @@ def update_radar_chart(slider_values, selected_columns):
 def update_scatter_plot(click_data):
     plot_discrete_data_copy = plot_discrete_data.copy()
 
+
     if click_data is None:
         return px.scatter(title='Scatter Plot')
     else:
         clicked_category = click_data['points'][0]['y']
+
+        # Extract x-axis title
+        x_axis_title = x_axis_dict.get(clicked_category, "No title available.")
+
+
         logging.info(f"Clicked Category: {clicked_category}")
         if clicked_category in ['Type_of_Loan']:
             fig = plot_loan_distribution(plot_discrete_data_copy)
         elif clicked_category in ['Occupation', 'Credit_Mix', 'Payment_Behaviour', 'Payment_of_Min_Amount']:
-            fig = plot_categorical_distribution(plot_discrete_data_copy, clicked_category)
+            fig = plot_categorical_distribution(plot_discrete_data_copy, clicked_category, x_axis_title)
         elif clicked_category in ['Num_Credit_Card', 'Num_Bank_Accounts', 'Interest_Rate', 'Num_of_Loan']:
-            fig = plot_discrete_distribution(plot_discrete_data_copy, clicked_category)
+            fig = plot_discrete_distribution(plot_discrete_data_copy, clicked_category, x_axis_title)
         else:
-            fig = plot_continuous_distribution(plot_continuous_data, clicked_category)
+            fig = plot_continuous_distribution(plot_continuous_data, clicked_category, x_axis_title)
 
         return fig
 
