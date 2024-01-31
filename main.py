@@ -12,10 +12,11 @@ from slider_helpers import preprocess_data, create_slider_config, generate_figur
 from diverging_bar_chart_helpers import plot_correlation_chart, plot_continuous_distribution, \
     plot_discrete_distribution, \
     plot_categorical_distribution, plot_loan_distribution
+import dash_table
 
+arr = []
 # Set up basic logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 
 #### Loading and preping data for plotting ( Koko )
 # Load the CSV file into a DataFrame
@@ -42,7 +43,7 @@ plot_continuous_data = plot_continuous_data.dropna(subset=columns_to_convert + [
 ####
 
 # Load your data and preprocess for the radar chart ( Borna )
-selected_features, selected_df, mean_values, scaler = preprocess_data()
+selected_features, selected_df, mean_values, scaler, test = preprocess_data()
 
 # Define slider configurations
 column_config = {
@@ -53,7 +54,10 @@ column_config = {
     'Monthly_Inhand_Salary': create_slider_config('Monthly_Inhand_Salary', selected_df, min_val=0, max_val=20000,
                                                   step=100, marks={i: f"${i}" for i in range(0, 20001, 1000)}),
     'Num_Bank_Accounts': create_slider_config('Num_Bank_Accounts', selected_df),
-    'Interest_Rate': create_slider_config('Interest_Rate', selected_df, min_val=0, max_val=40, step=2)
+    'Interest_Rate': create_slider_config('Interest_Rate', selected_df, min_val=0, max_val=40, step=2),
+    'Num_Credit_Card': create_slider_config('Num_Credit_Card', selected_df),
+    'Credit_Utilization_Ratio': create_slider_config('Credit_Utilization_Ratio', selected_df, min_val=20, max_val=50, step=1, marks={i: str(i) for i in range(20, 50, 3)}),
+    'Num_of_Delayed_Payment': create_slider_config('Num_of_Delayed_Payment', selected_df, step=1, max_val=50, marks={i: str(i) for i in range(0, 50, 5)})
 }
 
 categories = ['Occupation', 'Salary', 'Outstanding Dept', 'Nmr. Bank Accounts']
@@ -80,17 +84,9 @@ custom_font = {
 
 counter = 0
 
-
-
-
 unique_users = plot_discrete_data['Customer_ID'].unique()
 
-
-
 copy_continuous_data = plot_continuous_data.copy()
-
-
-
 
 # Define the credit score categories
 # credit_score_mapping = {
@@ -107,6 +103,8 @@ copy_continuous_data = plot_continuous_data.copy()
 
 customer_changes = plot_continuous_data.groupby('Customer_ID')['Credit_Score_Numeric'].nunique().sort_values(ascending=False).head(25)
 dropdown_options = [{'label': id, 'value': id} for id in customer_changes.index]
+
+
 # Callback to update the graph
 @app.callback(
     Output('line-chart', 'figure'),
@@ -119,11 +117,12 @@ def update_line_chart(customer_id):
     # Create the line chart
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=customer_data['Month'], y=customer_data['Credit_Score_Numeric'],
-                             mode='lines+markers', name='Credit Score', customdata=[customer_id]*len(customer_data)))
+                             mode='lines+markers', name='Credit Score', customdata=[customer_id] * len(customer_data)))
     fig.update_layout(title='Change in Credit Score Over Time for Customer {}'.format(customer_id),
                       xaxis_title='Month', yaxis_title='Credit Score')
 
     return fig
+
 
 # Callback to update the all changes chart
 @app.callback(
@@ -136,12 +135,13 @@ def update_all_changes_chart(id):
     for customer_id in customer_changes.index:
         customer_data = plot_continuous_data[plot_continuous_data['Customer_ID'] == customer_id]
         fig.add_trace(go.Scatter(x=customer_data['Month'], y=customer_data['Credit_Score_Numeric'],
-                                 mode='lines+markers', name=customer_id, customdata=[customer_id]*len(customer_data)))
+                                 mode='lines+markers', name=customer_id, customdata=[customer_id] * len(customer_data)))
 
     fig.update_layout(title='Change in Credit Score Over Time for Top 25 Customers',
                       xaxis_title='Month', yaxis_title='Credit Score')
 
     return fig
+
 
 # Callback to update the divergent bar chart
 # Callback to update the divergent bar chart
@@ -159,7 +159,7 @@ def update_divergent_bar_chart(customer_id):
     columns_to_include = ['Monthly_Inhand_Salary', 'Outstanding_Debt', 'Credit_History_Age',
                           'Total_EMI_per_month', 'Amount_invested_monthly',
                           'Monthly_Balance', 'Credit_Utilization_Ratio', 'Annual_Income',
-                          'Num_of_Loan','Interest_Rate','Num_Credit_Card']
+                          'Num_of_Loan', 'Interest_Rate', 'Num_Credit_Card']
 
     # Calculate the percentage changes in the specified variables
     pct_changes = customer_data[columns_to_include].pct_change().mean() * 100
@@ -174,19 +174,9 @@ def update_divergent_bar_chart(customer_id):
     return fig
 
 
-
 # Your existing layout components...
 
 #
-
-
-
-
-
-
-
-
-
 
 
 app.layout = html.Div([
@@ -240,7 +230,7 @@ app.layout = html.Div([
         html.Div(id='slider-container'),
         html.Div(id='sliders-output-container'),
         html.Div(id='figure-output-container')
-    ], style={'width': '48%', 'display': 'inline-block', 'vertical-align': 'top'}),
+    ], style={'width': '52%', 'display': 'inline-block', 'vertical-align': 'top', 'margin-bottom': '30px'}),
 
     # # Added components for user-dropdown and credit-score-plot
     # dropdown_layout,
@@ -249,7 +239,6 @@ app.layout = html.Div([
     dcc.Graph(id='line-chart', clickData={'points': [{'customdata': dropdown_options[0]['value']}]}, style={'height': '50vh'}),
     dcc.Graph(id='all-changes-chart', style={'height': '50vh'}),
     dcc.Graph(id='divergent-bar-chart', style={'height': '50vh'})
-
 
 ], style={'margin': '10px'})
 
@@ -269,8 +258,6 @@ x_axis_dict = plot_descriptions_df.set_index('Plot Name')['x_axis'].to_dict()
 def update_dynamic_graph(click_data):  # selected_option
     ctx = dash.callback_context
     plot_discrete_data_copy1 = plot_discrete_data.copy()
-
-
 
     # Check which input was triggered
     if not ctx.triggered:
@@ -356,17 +343,74 @@ def update_dynamic_graph(click_data):  # selected_option
 
 @app.callback(
     Output('slider-container', 'children'),
-    [Input('column-dropdown', 'value')]
+    [Input('column-dropdown', 'value'),
+     Input({'type': 'slider', 'index': ALL}, 'value')]
 )
-def update_sliders(selected_columns):
+def update_sliders(selected_columns, slider_values):
     if not selected_columns:
         return html.Div()  # Return empty div if no columns are selected
 
+    if not slider_values or len(slider_values) != len(selected_columns):
+        # Set default values if slider values are not set
+        slider_values = [column_config[col]['value'] for col in selected_columns]
+    i = 0
+    bella = 0
     sliders = []
-    for col in selected_columns:
+    for col, val in zip(selected_columns, slider_values):
         if col in column_config:
-            sliders.append(html.Div(dcc.Slider(**column_config[col]), style={'margin-bottom': '20px'}))
+            # Create a label for each slider with its name and current value
+            slider_label = html.Label(f'{col.replace("_", " ").title()}: {round(val)}',
+                                      style={'fontFamily': 'Helvetica, sans-serif',
+                                             'margin-top': '20px',
+                                             'color': 'rgb(51, 51, 51)'})
+
+            # Create the slider excluding 'value' from column_config to avoid duplicate 'value' error
+            slider_config = {key: column_config[col][key] for key in column_config[col] if key != 'value'}
+            slider = dcc.Slider(**slider_config, value=val)
+
+            # Add the label and the slider to the layout
+            if i == 0:
+                sliders.append(html.Div([slider_label, slider], style={'margin-bottom': '5px', 'margin-top': '25px'}))
+                i += 1
+            else:
+                sliders.append(html.Div([slider_label, slider], style={'margin-bottom': '5px'}))
+
     return html.Div(sliders)
+
+
+def std_dev_of_upper_quartile(df, column_name):
+    # Calculate the 75th percentile (third quartile)
+    third_quartile = df[column_name].quantile(0.75)
+
+    # Filter the DataFrame
+    filtered_df = df[df[column_name] >= third_quartile]
+
+    # Calculate the standard deviation of the filtered DataFrame
+    std_dev = filtered_df[column_name].std()
+
+    return std_dev
+
+
+def find_similar(attributes_selected, df, vals):
+    stds = []
+    for item in attributes_selected:
+        stds.append([item, std_dev_of_upper_quartile(df, item)])
+
+    for index, row in df.iterrows():
+        counter = len(attributes_selected)
+        for item in stds:
+            difference = item[1]
+            if item[0] == "Annual_Income":
+                # print(row[item[0]], vals[item[0]], difference, item)
+                if abs(row[item[0]] - vals[item[0]]) < 20000:
+                    counter -= 1
+            else:
+                # print(row[item[0]], vals[item[0]], difference, item)
+                if abs(row[item[0]] - vals[item[0]]) < difference:
+                    counter -= 1
+        if counter == 0:
+            return row
+    return None
 
 
 @app.callback(
@@ -375,15 +419,38 @@ def update_sliders(selected_columns):
     [Input('column-dropdown', 'value')]
 )
 def update_radar_chart(slider_values, selected_columns):
+    global arr
     if not slider_values or not selected_columns:
         return html.Div()  # Return empty div if no slider values or columns are provided
 
     # Construct a dict from column names to values
     new_user_data = {col: val for col, val in zip(selected_columns, slider_values)}
-
+    arr = new_user_data
     # Generate the radar chart figure with the current slider values
     fig = generate_figure(new_user_data, selected_features, mean_values, scaler)
-    return dcc.Graph(figure=fig)
+
+    table = None
+
+    similar_user = find_similar(selected_columns, plot_discrete_data, new_user_data)
+    if similar_user is not None:
+        table_data = [
+            {'Feature': col, 'Value': similar_user[col]} for col in selected_columns + ["Occupation", "Credit_Score"]
+        ]
+
+        table = dash_table.DataTable(
+            data=table_data,
+            columns=[{'name': 'Similar user', 'id': 'Feature'}, {'name': 'Value', 'id': 'Value'}],
+            style_cell={'textAlign': 'left'},
+            style_header={
+                'backgroundColor': 'white',
+                'fontWeight': 'bold'
+            }
+        )
+
+    else:
+        pass
+
+    return [dcc.Graph(figure=fig), table]
 
 
 @app.callback(
@@ -393,7 +460,6 @@ def update_radar_chart(slider_values, selected_columns):
 def update_scatter_plot(click_data):
     plot_discrete_data_copy = plot_discrete_data.copy()
 
-
     if click_data is None:
         return px.scatter(title='Scatter Plot')
     else:
@@ -401,7 +467,6 @@ def update_scatter_plot(click_data):
 
         # Extract x-axis title
         x_axis_title = x_axis_dict.get(clicked_category, "No title available.")
-
 
         logging.info(f"Clicked Category: {clicked_category}")
         if clicked_category in ['Type_of_Loan']:
@@ -414,7 +479,6 @@ def update_scatter_plot(click_data):
             fig = plot_continuous_distribution(plot_continuous_data, clicked_category, x_axis_title)
 
         return fig
-
 
 
 if __name__ == '__main__':

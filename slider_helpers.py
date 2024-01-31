@@ -5,9 +5,9 @@ import plotly.graph_objs as go
 
 def preprocess_data():
     df = pd.read_csv("full_processed_data_sorted.csv")
-    selected_features = ["Age", "Annual_Income", "Monthly_Inhand_Salary", "Num_Bank_Accounts", "Interest_Rate"] # 'Credit_History_Age', 'Monthly_Inhand_Salary',
-    selected_columns = selected_features + ["Num_Credit_Card", "Credit_Utilization_Ratio",
-                                            "Credit_History_Age", "Num_of_Delayed_Payment"]
+    selected_features = ["Age", "Annual_Income", "Monthly_Inhand_Salary", "Num_Bank_Accounts", "Interest_Rate", "Num_Credit_Card", "Credit_Utilization_Ratio", "Num_of_Delayed_Payment"] # 'Credit_History_Age', 'Monthly_Inhand_Salary',
+    selected_columns = selected_features + ["Credit_History_Age"]
+
     selected_df = df[selected_columns].copy()
     selected_df = selected_df[selected_df['Annual_Income'] < 150000]
     credit_score_column = df["Credit_Score"]
@@ -20,18 +20,30 @@ def preprocess_data():
     normalized_df['Credit_Score'] = pd.Categorical(normalized_df['Credit_Score'], categories=['Poor', 'Standard', 'Good'], ordered=True)
     mean_values = normalized_df.groupby('Credit_Score').mean()
 
-    return selected_features, selected_df, mean_values, scaler
+    return selected_features, selected_df, mean_values, scaler, selected_columns
 
 
 def create_slider_config(column_name, df, min_val=None, max_val=None, step=None, marks=None, label_generator=None):
-    if min_val is None: min_val = int(df[column_name].min())
-    if max_val is None: max_val = int(df[column_name].max())
-    if step is None: step = 1
+    if min_val is None:
+        min_val = int(df[column_name].min())
+    if max_val is None:
+        max_val = int(df[column_name].max())
+    if step is None:
+        step = 1
+
+    range_values = range(min_val, max_val + 1, step)
     if marks is None:
         if label_generator:
-            marks = {i: label_generator(i) for i in range(min_val, max_val + 1, step)}
+            marks = {i: label_generator(i) for i in range_values}
         else:
-            marks = {i: str(i) for i in range(min_val, max_val + 1, step)}
+            marks = {i: str(i) for i in range_values}
+
+    # Append '+' to the last label
+    last_value = max(range_values)
+    if label_generator:
+        marks[last_value] = label_generator(last_value) + '+'
+    else:
+        marks[last_value] = str(last_value) + '+'
 
     return {
         'id': {'type': 'slider', 'index': column_name},
@@ -41,6 +53,8 @@ def create_slider_config(column_name, df, min_val=None, max_val=None, step=None,
         'value': df[column_name].mean(),
         'marks': marks
     }
+
+
 
 # Custom label generator for 'Interest_Rate'
 def interest_rate_label_generator(value):
