@@ -452,25 +452,29 @@ def std_dev_of_upper_quartile(df, column_name):
     return std_dev
 
 
-def find_similar(attributes_selected, df, vals):
+def find_similar(attributes_selected, df, vals, score):
     stds = []
     for item in attributes_selected:
         stds.append([item, std_dev_of_upper_quartile(df, item)])
 
     for index, row in df.iterrows():
+        print('x')
         counter = len(attributes_selected)
-        for item in stds:
-            difference = item[1]
-            if item[0] == "Annual_Income":
-                # print(row[item[0]], vals[item[0]], difference, item)
-                if abs(row[item[0]] - vals[item[0]]) < 20000:
-                    counter -= 1
-            else:
-                # print(row[item[0]], vals[item[0]], difference, item)
-                if abs(row[item[0]] - vals[item[0]]) < difference:
-                    counter -= 1
-        if counter == 0:
-            return row
+        if row['Credit_Score'] != score:
+            pass
+        else:
+            for item in stds:
+                difference = item[1]
+                if item[0] == "Annual_Income":
+                    # print(row[item[0]], vals[item[0]], difference, item)
+                    if abs(row[item[0]] - vals[item[0]]) < 20000:
+                        counter -= 1
+                else:
+                    # print(row[item[0]], vals[item[0]], difference, item)
+                    if abs(row[item[0]] - vals[item[0]]) < difference:
+                        counter -= 1
+            if counter == 0:
+                return row
     return None
 
 
@@ -501,7 +505,7 @@ def update_radar_chart(slider_values, selected_columns, quality_value):
     fig = generate_figure(new_user_data, selected_features, mean_values, scaler, quality_labels[quality_value])
 
     # Find a similar user and generate the table if applicable
-    similar_user = find_similar(selected_columns, plot_discrete_data, new_user_data)
+    similar_user = find_similar(selected_columns, plot_discrete_data, new_user_data, quality_labels[quality_value])
     if similar_user is not None:
         table_data = [
             {'Feature': col, 'Value': similar_user[col]} for col in selected_columns + ["Occupation", "Credit_Score"]
