@@ -89,15 +89,20 @@ unique_users = plot_discrete_data['Customer_ID'].unique()
 
 copy_continuous_data = plot_continuous_data.copy()
 
+# Assuming plot_continuous_data is your DataFrame
 
+# Filter out the specific customer ID
+filtered_data = plot_continuous_data[plot_continuous_data['Customer_ID'] != 'CUS_0xb226']
 
-customer_changes = plot_continuous_data.groupby('Customer_ID')['Credit_Score_Numeric'].nunique().sort_values(ascending=False).head(5)
-
-
-
-
+# Now, group by 'Customer_ID', count unique 'Credit_Score_Numeric' values, sort, and get top 10
+customer_changes = filtered_data.groupby('Customer_ID')['Credit_Score_Numeric'] \
+                                .nunique() \
+                                .sort_values(ascending=False) \
+                                .head(10)
 
 dropdown_options = [{'label': str(customer_id), 'value': customer_id} for customer_id in customer_changes.index]
+
+
 # Callback for the 'all-changes-chart' that updates based on clickData
 
 # Callback for the 'all-changes-chart' graph
@@ -129,7 +134,7 @@ def update_all_changes_chart(click_data, dropdown_value):
             name=str(customer_id),
             opacity=line_opacity,
             line=dict(width=line_width),
-            customdata = [customer_id] * len(customer_data['Month'])  # Add customdata attribute
+            customdata=[customer_id] * len(customer_data['Month'])  # Add customdata attribute
         ))
 
     fig.update_layout(
@@ -140,6 +145,7 @@ def update_all_changes_chart(click_data, dropdown_value):
     )
 
     return fig
+
 
 # Callback for the 'divergent-bar-chart' graph
 @app.callback(
@@ -181,7 +187,7 @@ def update_divergent_bar_chart(click_data, dropdown_value):
         x=pct_changes.values,
         y=columns_to_include,
         orientation='h',
-        marker_color=['green' if x > 0 else 'red' for x in pct_changes.values]
+        marker_color=['#1F77B4' if x > 0 else '#FF7F0E' for x in pct_changes.values]
     ))
 
     fig.update_layout(
@@ -224,7 +230,7 @@ app.layout = html.Div([
             'transform': 'translateY(-3px)',
             'cursor': 'default'
         })
-    ], style={'display': 'flex', 'justify-content': 'start', 'align-items': 'flex-start'}),
+    ], style={'display': 'flex', 'justify-content': 'start', 'align-items': 'center', 'max-width': '1500px'}),
 
     # Second row with Distribution Chart below the Diverging Bar Chart and Dynamic Graph on the right
     html.Div([
@@ -236,7 +242,7 @@ app.layout = html.Div([
             id='dynamic-graph',
             style={'width': '48%', 'display': 'inline-block', 'vertical-align': 'top'}
         )
-    ], style={'display': 'flex', 'justify-content': 'space-between', 'margin-top': '10px'}),
+    ], id='scatter-plot-container'),
 
     # Radar chart with sliders
     html.Div([
@@ -248,21 +254,52 @@ app.layout = html.Div([
         ),
         html.Div(id='slider-container'),
         html.Div(id='sliders-output-container'),
-        html.Div(id='figure-output-container')
-    ], style={'width': '52%', 'display': 'inline-block', 'vertical-align': 'top', 'margin-bottom': '30px'}),
+    ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top', 'margin-bottom': '30px'}),
+
+    html.Div([
+        html.Div([
+            dcc.Slider(
+                id='quality-slider',
+                min=0,
+                max=2,
+                step=1,  # Ensure slider moves in discrete steps
+                marks={
+                    0: 'Poor',
+                    1: 'Standard',
+                    2: 'Good'
+                },
+                value=1  # Default value set to 'Standard'
+            )
+        ], style={'width': '40%', 'padding-left': '30%'}),  # Apply the style here
+        html.Div([
+            html.Div(id='figure-output-container', style={'flex': '1', 'padding-right': '20px'}),  # Container for displaying the radar chart graph
+            html.Div(id='table-output-container', style={'flex': '1', 'padding-left': '20px'})  # New container for displaying the table
+        ], style={'display': 'flex', 'justify-content': 'space-around', 'align-items': 'center', 'width': '100%', 'margin-bottom': '30px'})
+    ], style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}),
 
     # # Added components for user-dropdown and credit-score-plot
     # dropdown_layout,
 
     # dcc.Dropdown(id='customer-dropdown', options=dropdown_options, value=dropdown_options[0]['value']),
+    html.Div([
+        html.Div([
+            dcc.Dropdown(
+                id='customer-dropdown',
+                options=dropdown_options,
+                value=dropdown_options[0]['value'],  # Set default value to the first customer ID
+                style={'width': '80%', 'margin': 'auto'}  # Set the width of the dropdown to 100%
+            ),
+            dcc.Graph(
+                id='all-changes-chart',
+                style={'height': '40vh', 'width': '75%'}  # Set both the height and width of the graph
+            ),
+            dcc.Graph(
+                id='divergent-bar-chart',
+                style={'height': '40vh', 'width': '75%'}  # Set both the height and width of the graph
+            ),
 
-    dcc.Dropdown(
-        id='customer-dropdown',
-        options=dropdown_options,
-        value=dropdown_options[0]['value'],  # Set default value to the first customer ID
-    ),
-    dcc.Graph(id='all-changes-chart', style={'height': '50vh'}),
-    dcc.Graph(id='divergent-bar-chart', style={'height': '50vh'}),
+        ], style={'display': 'flex', 'flex-direction': 'column', 'align-items': 'center', 'width': '100%'})
+    ], style={'width': '100%'})
 
 ], style={'margin': '10px'})
 
@@ -438,23 +475,32 @@ def find_similar(attributes_selected, df, vals):
 
 
 @app.callback(
-    Output('figure-output-container', 'children'),
-    [Input({'type': 'slider', 'index': ALL}, 'value')],
-    [Input('column-dropdown', 'value')]
+    [
+        Output('figure-output-container', 'children'),  # Output for the radar chart
+        Output('table-output-container', 'children')    # Output for the table
+    ],
+    [
+        Input({'type': 'slider', 'index': ALL}, 'value'),  # Inputs from dynamically generated sliders
+        Input('column-dropdown', 'value'),  # Input from the dropdown
+        Input('quality-slider', 'value')  # Input from the quality slider
+    ]
 )
-def update_radar_chart(slider_values, selected_columns):
+def update_radar_chart(slider_values, selected_columns, quality_value):
     global arr
+
+    quality_labels = {0: 'Poor', 1: 'Standard', 2: 'Good'}
+
     if not slider_values or not selected_columns:
-        return html.Div()  # Return empty div if no slider values or columns are provided
+        return html.Div(), None  # Return empty div for figure and None for table if no input is provided
 
     # Construct a dict from column names to values
     new_user_data = {col: val for col, val in zip(selected_columns, slider_values)}
     arr = new_user_data
+
     # Generate the radar chart figure with the current slider values
-    fig = generate_figure(new_user_data, selected_features, mean_values, scaler)
+    fig = generate_figure(new_user_data, selected_features, mean_values, scaler, quality_labels[quality_value])
 
-    table = None
-
+    # Find a similar user and generate the table if applicable
     similar_user = find_similar(selected_columns, plot_discrete_data, new_user_data)
     if similar_user is not None:
         table_data = [
@@ -470,22 +516,23 @@ def update_radar_chart(slider_values, selected_columns):
                 'fontWeight': 'bold'
             }
         )
-
     else:
-        pass
+        table = None
 
-    return [dcc.Graph(figure=fig), table]
+    # Return the figure and table as separate components
+    return dcc.Graph(figure=fig), table
 
 
 @app.callback(
-    Output('scatter-plot', 'figure'),
+    [Output('scatter-plot', 'figure'),
+     Output('scatter-plot-container', 'style')],
     [Input('diverging-bar-chart', 'clickData')]
 )
 def update_scatter_plot(click_data):
     plot_discrete_data_copy = plot_discrete_data.copy()
-
+    style = {'display': 'flex', 'justify-content': 'space-between', 'margin-top': '10px', 'max-width': '1500px', 'padding-bottom': '35px'}
     if click_data is None:
-        return px.scatter(title='Scatter Plot')
+        return dash.no_update, {'display': 'none'}
     else:
         clicked_category = click_data['points'][0]['y']
 
@@ -502,7 +549,7 @@ def update_scatter_plot(click_data):
         else:
             fig = plot_continuous_distribution(plot_continuous_data, clicked_category, x_axis_title)
 
-        return fig
+        return fig, style
 
 
 if __name__ == '__main__':

@@ -3,9 +3,11 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import plotly.graph_objs as go
 
+
 def preprocess_data():
     df = pd.read_csv("full_processed_data_sorted.csv")
-    selected_features = ["Age", "Annual_Income", "Monthly_Inhand_Salary", "Num_Bank_Accounts", "Interest_Rate", "Num_Credit_Card", "Credit_Utilization_Ratio", "Num_of_Delayed_Payment"] # 'Credit_History_Age', 'Monthly_Inhand_Salary',
+    selected_features = ["Age", "Annual_Income", "Monthly_Inhand_Salary", "Num_Bank_Accounts", "Interest_Rate", "Num_Credit_Card", "Credit_Utilization_Ratio",
+                         "Num_of_Delayed_Payment"]  # 'Credit_History_Age', 'Monthly_Inhand_Salary',
     selected_columns = selected_features + ["Credit_History_Age"]
 
     selected_df = df[selected_columns].copy()
@@ -55,13 +57,13 @@ def create_slider_config(column_name, df, min_val=None, max_val=None, step=None,
     }
 
 
-
 # Custom label generator for 'Interest_Rate'
 def interest_rate_label_generator(value):
     return f"{value}-{value + 2}"
 
 
-def generate_figure(new_user_data, selected_features, mean_values, scaler):
+def generate_figure(new_user_data, selected_features, mean_values, scaler, lmao):
+    print(lmao, "asdasdsa")
     remove_later = []
     for item in selected_features:
         if item not in new_user_data:
@@ -73,17 +75,21 @@ def generate_figure(new_user_data, selected_features, mean_values, scaler):
     scaled_new_user_data = scaler.transform(new_user_df[selected_features])
     scaled_new_user_df = pd.DataFrame(scaled_new_user_data, columns=selected_features)
 
-    df_combined = pd.concat([scaled_new_user_df, mean_values.loc['Good'].to_frame().T], ignore_index=True)
+    df_combined = pd.concat([scaled_new_user_df, mean_values.loc[lmao].to_frame().T], ignore_index=True)
+    print(df_combined)
     max_value = df_combined.values.max() + 0.1
     fig = go.Figure()
 
     df_combined = df_combined.drop(columns=remove_later)
-
     for i, row_values in enumerate(df_combined.values):
+        if i == 0:
+            label = "User Data"
+        else:
+            label = f"Average User Data for {lmao} Credit Score"
         fig.add_trace(go.Scatterpolar(
             r=list(row_values) + [row_values[0]],  # Repeat the first point after the final point
             theta=list(df_combined.columns) + [df_combined.columns[0]],  # Repeat the first theta after the final theta
-            name=f'Data {i}',
+            name=label,
             mode='lines+markers',  # Add lines to connect the points
         ))
 
