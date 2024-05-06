@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 #### Loading and preping data for plotting ( Koko )
 # Load the CSV file into a DataFrame
-plot_discrete_data = pd.read_csv("full_processed_data_sorted.csv")
+plot_discrete_data = pd.read_csv("data/full_processed_data_sorted.csv")
 
 # Prepare the DataFrame for plotting continous data
 # Create a copy of the DataFrame for plotting
@@ -304,7 +304,7 @@ app.layout = html.Div([
 ], style={'margin': '10px'})
 
 # For each plot that gets displayed by the dropdown, we add a description, helping the user interpret the specific plot.
-plot_descriptions_df = pd.read_csv('plot_descriptions.csv')
+plot_descriptions_df = pd.read_csv('data/plot_descriptions.csv')
 plot_descriptions_dict = plot_descriptions_df.set_index('Plot Name')['Description'].to_dict()
 x_axis_dict = plot_descriptions_df.set_index('Plot Name')['x_axis'].to_dict()
 

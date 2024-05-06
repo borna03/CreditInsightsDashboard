@@ -5,7 +5,7 @@ import plotly.graph_objs as go
 
 
 def preprocess_data():
-    df = pd.read_csv("full_processed_data_sorted.csv")
+    df = pd.read_csv("data/full_processed_data_sorted.csv")
     selected_features = ["Age", "Annual_Income", "Monthly_Inhand_Salary", "Num_Bank_Accounts", "Interest_Rate", "Num_Credit_Card", "Credit_Utilization_Ratio",
                          "Num_of_Delayed_Payment"]  # 'Credit_History_Age', 'Monthly_Inhand_Salary',
     selected_columns = selected_features + ["Credit_History_Age"]

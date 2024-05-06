@@ -3,7 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Load the CSV file into a DataFrame
-plot_discrete_data = pd.read_csv("full_processed_data_sorted.csv")
+plot_discrete_data = pd.read_csv("data/full_processed_data_sorted.csv")
 
 
 # Bar Charts function
